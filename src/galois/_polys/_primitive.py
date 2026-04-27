@@ -67,41 +67,7 @@ def is_primitive(f: Poly) -> bool:
             assert f.is_irreducible()
             assert not f.is_primitive()
     """
-    if f.degree == 0:
-        # Over fields, f(x) = 0 is the zero element of GF(p^m)[x] and f(x) = c are the units of GF(p^m)[x].
-        # Both the zero element and the units are not irreducible over the polynomial ring GF(p^m)[x], and
-        # therefore cannot be primitive.
-        return False
-
-    if f.field.order == 2 and f.degree == 1:
-        # There is only one primitive polynomial in GF(2)
-        return f == Poly([1, 1])
-
-    if f.coeffs[-1] == 0:
-        # A primitive polynomial cannot have zero constant term
-        # TODO: Why isn't f(x) = x primitive? It's irreducible and passes the primitivity tests.
-        return False
-
-    if not is_irreducible(f):
-        # A polynomial must be irreducible to be primitive
-        return False
-
-    field = f.field
-    q = field.order
-    m = f.degree
-    one = Poly([1], field=field)
-
-    primes, _ = factors(q**m - 1)
-    x = Poly([1, 0], field=field)
-    for ki in sorted([(q**m - 1) // pi for pi in primes]):
-        # f(x) must not divide (x^((q^m - 1)/pi) - 1) for f(x) to be primitive, where pi are the prime factors
-        # of q**m - 1.
-        h = pow(x, ki, f)
-        g = (h - one) % f
-        if g == 0:
-            return False
-
-    return True
+    pass
 
 
 @export
@@ -198,41 +164,7 @@ def primitive_poly(
     Group:
         polys-primitive
     """
-    verify_isinstance(order, int)
-    verify_isinstance(degree, int)
-    verify_isinstance(terms, (int, str), optional=True)
-
-    if not is_prime_power(order):
-        raise ValueError(f"Argument 'order' must be a prime power, not {order}.")
-    if not degree >= 1:
-        raise ValueError(
-            f"Argument 'degree' must be at least 1, not {degree}. There are no primitive polynomials with degree 0."
-        )
-    if isinstance(terms, int) and not 1 <= terms <= degree + 1:
-        raise ValueError(f"Argument 'terms' must be at least 1 and at most {degree + 1}, not {terms}.")
-    if isinstance(terms, str) and not terms in ["min"]:
-        raise ValueError(f"Argument 'terms' must be 'min', not {terms!r}.")
-    if not method in ["min", "max", "random"]:
-        raise ValueError(f"Argument 'method' must be in ['min', 'max', 'random'], not {method!r}.")
-
-    try:
-        if method == "min":
-            return next(primitive_polys(order, degree, terms))
-        if method == "max":
-            return next(primitive_polys(order, degree, terms, reverse=True))
-
-        # Random search
-        if terms is None:
-            return next(_random_search(order, degree, "is_primitive"))
-        if terms == "min":
-            terms = _minimum_terms(order, degree, "is_primitive")
-        return next(_random_search_fixed_terms(order, degree, terms, "is_primitive"))
-
-    except StopIteration as e:
-        terms_str = "any" if terms is None else str(terms)
-        raise RuntimeError(
-            f"No monic primitive polynomial of degree {degree} over GF({order}) with {terms_str} terms exists."
-        ) from e
+    pass
 
 
 @export
@@ -314,44 +246,7 @@ def primitive_polys(
     Group:
         polys-primitive
     """
-    verify_isinstance(order, int)
-    verify_isinstance(degree, int)
-    verify_isinstance(terms, (int, str), optional=True)
-    verify_isinstance(reverse, bool)
-
-    if not is_prime_power(order):
-        raise ValueError(f"Argument 'order' must be a prime power, not {order}.")
-    if not degree >= 0:
-        raise ValueError(f"Argument 'degree' must be at least 0, not {degree}.")
-    if isinstance(terms, int) and not 1 <= terms <= degree + 1:
-        raise ValueError(f"Argument 'terms' must be at least 1 and at most {degree + 1}, not {terms}.")
-    if isinstance(terms, str) and not terms in ["min"]:
-        raise ValueError(f"Argument 'terms' must be 'min', not {terms!r}.")
-
-    if terms == "min":
-        # Find the minimum number of terms required to produce an primitive polynomial of degree m over GF(q).
-        # Then yield all monic primitive polynomials of with that number of terms.
-        min_terms = _minimum_terms(order, degree, "is_primitive")
-        yield from _deterministic_search_fixed_terms(order, degree, min_terms, "is_primitive", reverse)
-    elif isinstance(terms, int):
-        # Iterate over and test monic polynomials of degree m over GF(q) with `terms` non-zero terms.
-        yield from _deterministic_search_fixed_terms(order, degree, terms, "is_primitive", reverse)
-    else:
-        # Iterate over and test all monic polynomials of degree m over GF(q).
-        start = order**degree
-        stop = 2 * order**degree
-        step = 1
-        if reverse:
-            start, stop, step = stop - 1, start - 1, -1
-        field = _factory.FIELD_FACTORY(order)
-
-        while True:
-            poly = _deterministic_search(field, start, stop, step, "is_primitive")
-            if poly is not None:
-                start = int(poly) + step
-                yield poly
-            else:
-                break
+    pass
 
 
 @export
@@ -406,28 +301,4 @@ def matlab_primitive_poly(characteristic: int, degree: int) -> Poly:
     Group:
         polys-primitive
     """
-    verify_isinstance(characteristic, int)
-    verify_isinstance(degree, int)
-
-    if not is_prime(characteristic):
-        raise ValueError(f"Argument 'characteristic' must be prime, not {characteristic}.")
-    if not degree >= 1:
-        raise ValueError(
-            f"Argument 'degree' must be at least 1, not {degree}. There are no primitive polynomials with degree 0."
-        )
-
-    # Textbooks and Matlab use the lexicographically first primitive polynomial with minimal terms for the default.
-    # But for some reason, there are three exceptions. I can't determine why.
-    if characteristic == 2 and degree == 7:
-        # Not the lexicographically first of x^7 + x + 1.
-        return Poly.Degrees([7, 3, 0])
-
-    if characteristic == 2 and degree == 14:
-        # Not the lexicographically first of x^14 + x^5 + x^3 + x + 1.
-        return Poly.Degrees([14, 10, 6, 1, 0])
-
-    if characteristic == 2 and degree == 16:
-        # Not the lexicographically first of x^16 + x^5 + x^3 + x^2 + 1.
-        return Poly.Degrees([16, 12, 3, 1, 0])
-
-    return primitive_poly(characteristic, degree)
+    pass

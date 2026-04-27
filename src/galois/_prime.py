@@ -129,14 +129,7 @@ def kth_prime(k: int) -> int:
     Group:
         primes-generation
     """
-    verify_isinstance(k, int)
-    if not 1 <= k <= MAX_K:
-        raise ValueError(
-            f"Argument 'k' is out of range of the prime lookup table. "
-            f"The lookup table only contains the first {MAX_K} primes (up to {MAX_N})."
-        )
-
-    return PRIMES[k - 1]
+    pass
 
 
 @export
@@ -163,25 +156,7 @@ def prev_prime(n: int) -> int:
     Group:
         primes-generation
     """
-    verify_isinstance(n, int)
-    if not n >= 2:
-        raise ValueError("There are no primes less than 2.")
-
-    # Directly use lookup table
-    if n <= MAX_N:
-        return PRIMES[bisect.bisect_right(PRIMES, n) - 1]
-
-    shifts = [29, 23, 19, 17, 13, 11, 7, 1]  # Factorization wheel for basis {2, 3, 5}
-    base = n // 30 * 30  # Wheel factorization starting point
-
-    while True:
-        for shift in shifts:
-            i = base + shift  # May be bigger than n
-            if i > n:
-                continue
-            if is_prime(i):
-                return i
-        base -= 30
+    pass
 
 
 @export
@@ -208,23 +183,7 @@ def next_prime(n: int) -> int:
     Group:
         primes-generation
     """
-    verify_isinstance(n, int)
-
-    # Directly use lookup table
-    if n < PRIMES[-1]:
-        return PRIMES[bisect.bisect_right(PRIMES, n)]
-
-    shifts = [1, 7, 11, 13, 17, 19, 23, 29]  # Factorization wheel for basis {2, 3, 5}
-    base = n // 30 * 30  # Wheel factorization starting point. May be less than n.
-
-    while True:
-        for shift in shifts:
-            i = base + shift
-            if i <= n:
-                continue
-            if is_prime(i):
-                return i
-        base += 30
+    pass
 
 
 @export
@@ -268,18 +227,7 @@ def random_prime(bits: int, seed: int | None = None) -> int:
     Group:
         primes-generation
     """
-    verify_isinstance(bits, int)
-    verify_isinstance(seed, int, optional=True)
-    if not bits > 0:
-        raise ValueError(f"Argument 'bits' must be positive, not {bits}.")
-
-    random.seed(seed)
-    while True:
-        p = random.randint(2**bits, 2 ** (bits + 1) - 1)
-        if is_prime(p):
-            break
-
-    return p
+    pass
 
 
 # https://www.mersenne.org/primes/
@@ -371,14 +319,7 @@ def mersenne_exponents(n: int | None = None) -> list[int]:
     Group:
         primes-generation
     """
-    if n is None:
-        return MERSENNE_EXPONENTS
-
-    verify_isinstance(n, int)
-    if not n > 0:
-        raise ValueError(f"Argument 'n' must be positive, not {n}.")
-
-    return MERSENNE_EXPONENTS[0 : bisect.bisect_right(MERSENNE_EXPONENTS, n)]
+    pass
 
 
 @export
@@ -411,7 +352,7 @@ def mersenne_primes(n: int | None = None) -> list[int]:
     Group:
         primes-generation
     """
-    return [2**e - 1 for e in mersenne_exponents(n)]
+    pass
 
 
 ###############################################################################
@@ -491,24 +432,7 @@ def fermat_primality_test(n: int, a: int | None = None, rounds: int = 1) -> bool
     Group:
         primes-specific-tests
     """
-    verify_isinstance(n, int)
-    verify_isinstance(a, int, optional=True)
-    verify_isinstance(rounds, int)
-
-    a = random.randint(2, n - 2) if a is None else a
-    if not (n > 2 and n % 2 == 1):
-        raise ValueError(f"Argument 'n' must be odd and greater than 2, not {n}.")
-    if not 2 <= a <= n - 2:
-        raise ValueError(f"Argument 'a' must satisfy 2 <= a <= {n - 2}, not {a}.")
-    if not rounds >= 1:
-        raise ValueError(f"Argument 'rounds' must be at least 1, not {rounds}.")
-
-    for _ in range(rounds):
-        if pow(a, n - 1, n) != 1:
-            return False  # n is definitely composite
-        a = random.randint(2, n - 2)
-
-    return True  # n is a probable prime
+    pass
 
 
 @export
@@ -577,43 +501,7 @@ def miller_rabin_primality_test(n: int, a: int = 2, rounds: int = 1) -> bool:
     Group:
         primes-specific-tests
     """
-    verify_isinstance(n, int)
-    verify_isinstance(a, int)
-    verify_isinstance(rounds, int)
-
-    # To avoid this test `2 <= a <= n - 2` which doesn't apply for n=3
-    if n == 3:
-        return True
-
-    if not (n > 2 and n % 2 == 1):
-        raise ValueError(f"Argument 'n' must be odd and greater than 2, not {n}.")
-    if not 2 <= a <= n - 2:
-        raise ValueError(f"Argument 'a' must satisfy 2 <= a <= {n - 2}, not {a}.")
-    if not rounds >= 1:
-        raise ValueError(f"Argument 'rounds' must be at least 1, not {rounds}.")
-
-    # Write (n - 1) = 2^s * r, for odd r
-    r, s = n - 1, 0
-    while r % 2 == 0:
-        r, s = r // 2, s + 1
-    assert 2**s * r == n - 1
-
-    for t in range(rounds):
-        y = pow(a, r, n)
-        if y not in [1, n - 1]:
-            j = 0
-            while j < s - 1 and y != n - 1:
-                y = pow(y, 2, n)
-                if y == 1:
-                    return False  # n is definitely composite
-                j += 1
-
-            if y != n - 1:
-                return False  # a is a strong witness to the compositness of n
-
-        a = PRIMES[t]
-
-    return True  # n is a probable prime
+    pass
 
 
 ###############################################################################
@@ -667,12 +555,7 @@ def legendre_symbol(a: int, p: int) -> int:
     Group:
         number-theory-congruences
     """
-    verify_isinstance(a, int)
-    verify_isinstance(p, int)
-    if not (is_prime(p) and p > 2):
-        raise ValueError(f"Argument 'p' must be an odd prime greater than 2, not {p}.")
-
-    return jacobi_symbol(a, p)
+    pass
 
 
 @export
@@ -713,39 +596,7 @@ def jacobi_symbol(a: int, n: int) -> int:
     Group:
         number-theory-congruences
     """
-    verify_isinstance(a, int)
-    verify_isinstance(n, int)
-    if not (n > 2 and n % 2 == 1):
-        raise ValueError(f"Argument 'n' must be an odd integer greater than 2, not {n}.")
-
-    a = a % n
-    if a == 0:
-        return 0
-    if a == 1:
-        return 1
-
-    # Write a = 2^e * a1
-    a1, e = a, 0
-    while a1 % 2 == 0:
-        a1, e = a1 // 2, e + 1
-    assert 2**e * a1 == a
-
-    if e % 2 == 0:
-        s = 1
-    else:
-        if n % 8 in [1, 7]:
-            s = 1
-        else:
-            s = -1
-
-    if n % 4 == 3 and a1 % 4 == 3:
-        s = -s
-
-    n1 = n % a1
-    if a1 != 1:
-        s *= jacobi_symbol(n1, a1)
-
-    return s
+    pass
 
 
 @export
@@ -770,37 +621,7 @@ def kronecker_symbol(a: int, n: int) -> int:
     Group:
         number-theory-congruences
     """
-    verify_isinstance(a, int)
-    verify_isinstance(n, int)
-
-    if n == 0:
-        return 1 if a in [1, -1] else 0
-    if n == 1:
-        return 1
-    if n == -1:
-        return -1 if a < 0 else 1
-    if n == 2:
-        if a % 2 == 0:
-            return 0
-        if a % 8 in [1, 7]:
-            return 1
-        return -1
-
-    # Factor out the unit +/- 1
-    u = -1 if n < 0 else 1
-    n //= u
-
-    # Factor out the powers of 2 so the resulting n is odd
-    e = 0
-    while n % 2 == 0:
-        n, e = n // 2, e + 1
-
-    s = kronecker_symbol(a, u) * kronecker_symbol(a, 2) ** e
-    if n >= 3:
-        # Handle the remaining odd n using the Jacobi symbol
-        s *= jacobi_symbol(a, n)
-
-    return s
+    pass
 
 
 ###############################################################################
@@ -813,82 +634,14 @@ def factors(n: int) -> tuple[list[int], list[int]]:
     """
     This function is wrapped and documented in `_polymorphic.factors()`.
     """
-    verify_isinstance(n, int)
-    if not n > 1:
-        raise ValueError(f"Argument 'n' must be greater than 1, not {n}.")
-
-    # Step 0: Check if n is in the prime factors database.
-    try:
-        p, e, n = PrimeFactorsDatabase().fetch(n)
-        if n == 1:
-            return _merge_factors(p, e)
-        # Else, there still may be a residual composite
-        # Although, we're probably not powerful enough to factor it...
-    except LookupError:
-        p, e = [], []
-
-    # Step 1: Test is n is prime.
-    if is_prime(n):
-        p.append(n)
-        e.append(1)
-        return _merge_factors(p, e)
-
-    # Step 2: Test if n is a perfect power. The base may be composite.
-    base, exponent = perfect_power(n)
-    if base != n:
-        pp, ee = factors(base)
-        ee = [eei * exponent for eei in ee]
-        p.extend(pp)
-        e.extend(ee)
-        return _merge_factors(p, e)
-
-    # Step 3: Perform trial division up to medium-sized primes.
-    pp, ee, n = trial_division(n, 10_000_000)
-    p.extend(pp)
-    e.extend(ee)
-
-    # Step 4: Use Pollard's rho algorithm to find a non-trivial factor.
-    while n > 1 and not is_prime(n):
-        c = 1
-        while True:
-            try:
-                f = pollard_rho(n, c=c)  # A non-trivial factor
-                break  # Found a factor
-            except RuntimeError:
-                # Could not find one -- keep searching
-                c = random.randint(2, n // 2)
-
-        if is_prime(f):
-            degree = 0
-            while n % f == 0:
-                degree += 1
-                n //= f
-            p.append(f)
-            e.append(degree)
-        else:
-            raise RuntimeError(
-                f"Encountered a very large composite {f}. "
-                f"Please report this in a GitHub issue at https://github.com/mhostetter/galois/issues."
-            )
-
-    if n > 1:
-        p.append(n)
-        e.append(1)
-
-    return _merge_factors(p, e)
+    pass
 
 
 def _merge_factors(p: list[int], e: list[int]) -> tuple[list[int], list[int]]:
     """
     Merges duplicate prime factors and sums their exponents.
     """
-    merged: dict[int, int] = {}
-    for pi, ei in zip(p, e):
-        merged[pi] = merged.get(pi, 0) + ei
-    primes = sorted(merged.keys())
-    exponents = [merged[pi] for pi in primes]
-
-    return primes, exponents
+    pass
 
 
 @export
@@ -959,7 +712,7 @@ def perfect_power(n: int) -> tuple[int, int]:
     Group:
         factorization-specific
     """
-    return _perfect_power(n)
+    pass
 
 
 @functools.lru_cache(maxsize=512)
@@ -995,20 +748,7 @@ def _adjust_base_and_exponent(n: int, base: int, exponent: int) -> tuple[int, in
     """
     Adjusts the base and exponent of a perfect power to account for negative integers.
     """
-    if n < 0:
-        # Try to convert the even exponent of a factored negative number into the next largest odd power
-        while exponent > 2:
-            if exponent % 2 == 0:
-                base *= 2
-                exponent //= 2
-            else:
-                return -base, exponent
-
-        # Failed to convert the even exponent to and odd one, therefore there is no real factorization of
-        # this negative integer
-        return n, 1
-
-    return base, exponent
+    pass
 
 
 @export
@@ -1044,31 +784,7 @@ def trial_division(n: int, B: int | None = None) -> tuple[list[int], list[int], 
     Group:
         factorization-specific
     """
-    verify_isinstance(n, int)
-    verify_isinstance(B, int, optional=True)
-
-    B = isqrt(n) if B is None else B
-    if not n > 1:
-        raise ValueError(f"Argument 'n' must be greater than 1, not {n}.")
-    if not B > 2:
-        raise ValueError(f"Argument 'B' must be greater than 2, not {B}.")
-    B = min(isqrt(n), B)  # There cannot be a prime factor greater than sqrt(n)
-
-    p, e = [], []
-    for prime in primes(B):
-        degree = 0
-        while n % prime == 0:
-            degree += 1
-            n //= prime
-        if degree > 0:
-            p.append(prime)
-            e.append(degree)
-
-            # Check if we've fully factored n and if so break early
-            if n == 1:
-                break
-
-    return p, e, n
+    pass
 
 
 @export
@@ -1145,57 +861,7 @@ def pollard_p1(n: int, B: int, B2: int | None = None) -> int:
     Group:
         factorization-specific
     """
-    verify_isinstance(n, int)
-    verify_isinstance(B, int)
-    verify_isinstance(B2, int, optional=True)
-
-    if not (n % 2 == 1 and n > 2):
-        raise ValueError(f"Argument 'n' must be odd and greater than 2, not {n}.")
-    if not B > 2:
-        raise ValueError(f"Argument 'B' must be greater than 2, not {B}.")
-
-    a = 2  # A value that is coprime to n (since n is odd)
-    check_stride = 10
-
-    for i, p in enumerate(primes(B)):
-        e = ilog(n, p)
-        a = pow(a, p**e, n)
-
-        # Check the GCD periodically to return early without checking all primes less than the
-        # smoothness bound
-        if i % check_stride == 0 and math.gcd(a - 1, n) not in [1, n]:
-            return math.gcd(a - 1, n)
-
-    d = math.gcd(a - 1, n)
-
-    if d not in [1, n]:
-        return d
-    if d == n:
-        raise RuntimeError(
-            f"A non-trivial factor of {n} could not be found using the Pollard p-1 algorithm "
-            f"with smoothness bound {B} and secondary bound {B2}."
-        )
-
-    # Try to find p such that p - 1 has a single prime factor larger than B
-    if B2 is not None:
-        P = primes(B2)
-        P = P[bisect.bisect_right(P, B) : bisect.bisect_right(P, B2)]  # Only select primes between B < prime <= B2
-        for i, p in enumerate(P):
-            a = pow(a, p, n)
-
-            # Check the GCD periodically to return early without checking all primes less than the
-            # smoothness bound
-            if i % check_stride == 0 and math.gcd(a - 1, n) not in [1, n]:
-                return math.gcd(a - 1, n)
-
-        d = math.gcd(a - 1, n)
-        if d not in [1, n]:
-            return d
-
-    raise RuntimeError(
-        f"A non-trivial factor of {n} could not be found using the Pollard p-1 algorithm "
-        f"with smoothness bound {B} and secondary bound {B2}."
-    )
+    pass
 
 
 @export
@@ -1247,30 +913,7 @@ def pollard_rho(n: int, c: int = 1) -> int:
     Group:
         factorization-specific
     """
-    verify_isinstance(n, int)
-    verify_isinstance(c, int)
-
-    if not n > 1:
-        raise ValueError(f"Argument 'n' must be greater than 1, not {n}.")
-    if not c not in [0, -2]:
-        raise ValueError("Argument 'c' cannot be -2 or 0.")
-    n = abs(n)
-
-    def f(x):
-        return (x**2 + c) % n
-
-    a, b, d = 2, 2, 1
-    while d == 1:
-        a = f(a)
-        b = f(f(b))
-        d = math.gcd(abs(a - b), n)
-
-    if d == n:
-        raise RuntimeError(
-            f"A non-trivial factor of {n} could not be found using the Pollard Rho algorithm with f(x) = x^2 + {c}."
-        )
-
-    return d
+    pass
 
 
 # def fermat_factors(n):
@@ -1318,36 +961,7 @@ def divisors(n: int) -> list[int]:
     Group:
         factorization-composite
     """
-    verify_isinstance(n, int)
-    n = abs(n)
-
-    if n == 0:
-        return []
-    if n == 1:
-        return [1]
-
-    # Factor n into its unique k prime factors and their exponents
-    p, e = factors(n)
-    k = len(p)
-
-    # Enumerate all the prime powers, i.e. [p1, p1^2, p1^3, p2, p2^2, ...]
-    prime_powers = []
-    for pi, ei in zip(p, e):
-        prime_powers += [pi**j for j in range(1, ei + 1)]
-
-    d = [1, n]
-    for ki in range(1, k + 1):
-        # For all prime powers choose ki for ki in [1, 2, ..., k]
-        for items in itertools.combinations(prime_powers, ki):
-            d1 = prod(*items)  # One possible divisor
-            if n % d1 == 0:
-                d2 = n // d1  # The other divisor
-                d += [d1, d2]
-
-    # Reduce the list to unique divisors and sort ascending
-    d = sorted(list(set(d)))
-
-    return d
+    pass
 
 
 @export
@@ -1382,14 +996,7 @@ def divisor_sigma(n: int, k: int = 1) -> int:
     Group:
         factorization-composite
     """
-    verify_isinstance(n, int)
-
-    d = divisors(n)
-
-    if n == 0:
-        return len(d)
-
-    return sum(di**k for di in d)
+    pass
 
 
 ###############################################################################
@@ -1481,12 +1088,7 @@ def is_composite(n: int) -> bool:
     Group:
         primes-tests
     """
-    verify_isinstance(n, int)
-
-    if n < 2:
-        return False
-
-    return not is_prime(n)
+    pass
 
 
 @export
@@ -1517,18 +1119,7 @@ def is_prime_power(n: int) -> bool:
     Group:
         primes-tests
     """
-    verify_isinstance(n, int)
-
-    if n < 2:
-        return False
-
-    if is_prime(n):
-        return True
-
-    # Determine is n is a perfect power and then check is the base is prime or composite
-    c, _ = perfect_power(n)
-
-    return is_prime(c)
+    pass
 
 
 @export
@@ -1591,33 +1182,14 @@ def is_perfect_power(n: int) -> bool:
     Group:
         primes-tests
     """
-    verify_isinstance(n, int)
-
-    # Special cases: -1 = -1^3, 0 = 0^2, 1 = 1^3
-    if n in [-1, 0, 1]:
-        return True
-
-    c, _ = perfect_power(n)
-
-    return n != c
+    pass
 
 
 def is_square_free(n: int) -> bool:
     """
     This function is wrapped and documented in `_polymorphic.is_square_free()`.
     """
-    # Since -1 can factored out of the prime factorization is_square_free(-n) == is_square_free(n)
-    n = abs(n)
-
-    if n == 0:
-        return False
-    if n == 1:
-        return True
-
-    # For n to be square-free it must have no prime factors with exponent greater than 1
-    _, e = factors(n)
-
-    return e == [1] * len(e)
+    pass
 
 
 @export
@@ -1652,30 +1224,7 @@ def is_smooth(n: int, B: int) -> bool:
     Group:
         primes-tests
     """
-    verify_isinstance(n, int)
-    verify_isinstance(B, int)
-    if not B >= 2:
-        raise ValueError(f"Argument 'B' must be at least 2, not {B}.")
-
-    # Since -1 can factored out of the prime factorization is_square_free(-n) == is_square_free(n)
-    n = abs(n)
-
-    if n == 0:
-        return False
-    if n == 1:
-        return True
-
-    for p in primes(B):
-        e = ilog(n, p)
-        d = math.gcd(p**e, n)
-        if d > 1:
-            n //= d
-        if n == 1:
-            # n can be fully factored by the primes already tested, therefore it is B-smooth
-            return True
-
-    # n has residual prime factors larger than B, therefore it is not B-smooth
-    return False
+    pass
 
 
 @export
@@ -1709,32 +1258,4 @@ def is_powersmooth(n: int, B: int) -> bool:
     Group:
         primes-tests
     """
-    verify_isinstance(n, int)
-    verify_isinstance(B, int)
-    if not B >= 2:
-        raise ValueError(f"Argument 'B' must be at least 2, not {B}.")
-
-    # Since -1 can factored out of the prime factorization is_square_free(-n) == is_square_free(n)
-    n = abs(n)
-
-    if n == 0:
-        return False
-    if n == 1:
-        return True
-
-    D = 1  # The product of all GCDs with the prime powers
-    for p in primes(B):
-        e = ilog(B, p) + 1  # Find the exponent e of p such that p^e > B
-        d = math.gcd(p**e, n)
-        D *= d
-
-        # If the GCD is p^e, then p^e > B divides n and therefore n cannot be B-powersmooth
-        if d == p**e:
-            return False
-
-    # If the product of GCDs of n with each prime power is less than n, then n has a prime factor greater than B.
-    # Therefore, n cannot be B-powersmooth.
-    if D < n:
-        return False
-
-    return True
+    pass

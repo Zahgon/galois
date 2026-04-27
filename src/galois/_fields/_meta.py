@@ -87,16 +87,7 @@ class FieldArrayMeta(ArrayMeta):
         Order:
             30
         """
-        string = "Galois Field:"
-        string += f"\n  name: {cls.name}"
-        string += f"\n  characteristic: {cls.characteristic}"
-        string += f"\n  degree: {cls.degree}"
-        string += f"\n  order: {cls.order}"
-        string += f"\n  irreducible_poly: {cls._irreducible_poly_str}"
-        string += f"\n  is_primitive_poly: {cls.is_primitive_poly}"
-        string += f"\n  primitive_element: {cls._primitive_element_str}"
-
-        return string
+        pass
 
     @property
     def name(cls) -> str:
@@ -111,7 +102,7 @@ class FieldArrayMeta(ArrayMeta):
                 galois.GF(31).name
                 galois.GF(7**5).name
         """
-        return super().name
+        pass
 
     @property
     def characteristic(cls) -> int:
@@ -165,7 +156,7 @@ class FieldArrayMeta(ArrayMeta):
                 galois.GF(31).order
                 galois.GF(7**5).order
         """
-        return super().order
+        pass
 
     @property
     def irreducible_poly(cls) -> Poly:
@@ -183,7 +174,7 @@ class FieldArrayMeta(ArrayMeta):
                 galois.GF(31).irreducible_poly
                 galois.GF(7**5).irreducible_poly
         """
-        return super().irreducible_poly
+        pass
 
     @property
     def is_primitive_poly(cls) -> bool:
@@ -210,7 +201,7 @@ class FieldArrayMeta(ArrayMeta):
                 print(GF.properties)
                 assert not GF.is_primitive_poly
         """
-        return cls._is_primitive_poly
+        pass
 
     @property
     def elements(cls) -> FieldArray:
@@ -238,7 +229,7 @@ class FieldArrayMeta(ArrayMeta):
         Order:
             22
         """
-        return super().elements
+        pass
 
     @property
     def units(cls) -> FieldArray:
@@ -269,7 +260,7 @@ class FieldArrayMeta(ArrayMeta):
         Order:
             22
         """
-        return super().units
+        pass
 
     @property
     def primitive_element(cls) -> FieldArray:
@@ -305,7 +296,7 @@ class FieldArrayMeta(ArrayMeta):
         Order:
             22
         """
-        return super().primitive_element
+        pass
 
     @property
     def primitive_elements(cls) -> FieldArray:
@@ -341,11 +332,7 @@ class FieldArrayMeta(ArrayMeta):
         Order:
             22
         """
-        if not hasattr(cls, "_primitive_elements"):
-            n = cls.order - 1
-            powers = np.array(totatives(n))
-            cls._primitive_elements = np.sort(cls.primitive_element**powers)
-        return cls._primitive_elements.copy()
+        pass
 
     @property
     def normal_element(cls) -> FieldArray | None:
@@ -379,15 +366,7 @@ class FieldArrayMeta(ArrayMeta):
         Order:
             22
         """
-        if not hasattr(cls, "_normal_element"):
-            if cls.is_prime_field:
-                normal_element = None
-            else:
-                # Finding one is faster than selecting the first from the list of all normal elements
-                beta = get_normal_element(cls.irreducible_poly)
-                normal_element = cls.Vector(beta.coefficients(cls.degree))
-            cls._normal_element = normal_element
-        return cls._normal_element
+        pass
 
     @property
     def normal_elements(cls) -> FieldArray:
@@ -421,14 +400,7 @@ class FieldArrayMeta(ArrayMeta):
         Order:
             22
         """
-        if not hasattr(cls, "_normal_elements"):
-            if cls.is_prime_field:
-                normal_elements = cls([])
-            else:
-                betas = get_normal_elements(cls.irreducible_poly)
-                normal_elements = [cls.Vector(beta.coefficients(cls.degree)) for beta in betas]
-            cls._normal_elements = normal_elements
-        return cls._normal_elements.copy()
+        pass
 
     @property
     def squares(cls) -> FieldArray:
@@ -472,9 +444,7 @@ class FieldArrayMeta(ArrayMeta):
         Order:
             22
         """
-        x = cls.elements
-        is_square = x.is_square()
-        return x[is_square]
+        pass
 
     @property
     def non_squares(cls) -> FieldArray:
@@ -509,9 +479,7 @@ class FieldArrayMeta(ArrayMeta):
         Order:
             22
         """
-        x = cls.elements
-        is_square = x.is_square()
-        return x[~is_square]
+        pass
 
     @property
     def is_prime_field(cls) -> bool:
@@ -526,7 +494,7 @@ class FieldArrayMeta(ArrayMeta):
                 assert galois.GF(31).is_prime_field
                 assert not galois.GF(7**5).is_prime_field
         """
-        return cls._degree == 1
+        pass
 
     @property
     def is_extension_field(cls) -> bool:
@@ -541,7 +509,7 @@ class FieldArrayMeta(ArrayMeta):
                 assert not galois.GF(31).is_extension_field
                 assert galois.GF(7**5).is_extension_field
         """
-        return cls._degree > 1
+        pass
 
     @property
     def prime_subfield(cls) -> Type[FieldArray]:
@@ -559,7 +527,7 @@ class FieldArrayMeta(ArrayMeta):
                 galois.GF(31).prime_subfield
                 galois.GF(7**5).prime_subfield
         """
-        return cls._prime_subfield
+        pass
 
     @property
     def dtypes(cls) -> list[np.dtype]:
@@ -600,7 +568,7 @@ class FieldArrayMeta(ArrayMeta):
         Order:
             32
         """
-        return super().dtypes
+        pass
 
     @property
     def element_repr(cls) -> Literal["int", "poly", "power"]:
@@ -636,7 +604,7 @@ class FieldArrayMeta(ArrayMeta):
         Order:
             31
         """
-        return super().element_repr
+        pass
 
     @property
     def ufunc_mode(cls) -> Literal["jit-lookup", "jit-calculate", "python-calculate"]:

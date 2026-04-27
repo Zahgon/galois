@@ -114,7 +114,7 @@ class ArrayMeta(abc.ABCMeta):
         """
         The name of the Galois field or Galois ring.
         """
-        return cls._name
+        pass
 
     @property
     def characteristic(cls) -> int:
@@ -144,42 +144,42 @@ class ArrayMeta(abc.ABCMeta):
         """
         The irreducible polynomial of the Galois field or Galois ring.
         """
-        return cls._irreducible_poly
+        pass
 
     @property
     def elements(cls) -> Array:
         """
         All elements of the Galois field or Galois ring.
         """
-        return cls.Range(0, cls.order, step=1)
+        pass
 
     @property
     def units(cls) -> Array:
         """
         All units of the Galois field or Galois ring.
         """
-        return cls.Range(1, cls.order, step=1)
+        pass
 
     @property
     def primitive_element(cls) -> Array:
         """
         A primitive element of the Galois field or Galois ring.
         """
-        return cls(cls._primitive_element)
+        pass
 
     @property
     def dtypes(cls) -> list[np.dtype]:
         """
         List of valid integer :obj:`numpy.dtype` values that are compatible with this Galois field or Galois ring.
         """
-        return cls._dtypes
+        pass
 
     @property
     def element_repr(cls) -> Literal["int", "poly", "power"]:
         """
         The current element representation of the Galois field or Galois ring.
         """
-        return cls._element_repr
+        pass
 
     @property
     def ufunc_mode(cls) -> Literal["jit-lookup", "jit-calculate", "python-calculate"]:

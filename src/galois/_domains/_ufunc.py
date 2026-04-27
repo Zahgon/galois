@@ -42,19 +42,19 @@ class UFunc:
         """
         Invokes the ufunc, either JIT-compiled or pure-Python, performing necessary verification and conversions.
         """
-        raise NotImplementedError
+        pass
 
     def set_calculate_globals(self):
         """
         Sets the global variables used in `calculate()` before JIT compiling it or before invoking it in pure Python.
         """
-        return
+        pass
 
     def set_lookup_globals(self):
         """
         Sets the global variables used in `lookup()` before JIT compiling it or before invoking it in pure Python.
         """
-        return
+        pass
 
     calculate: Callable
     """The explicit calculation implementation."""
@@ -86,77 +86,28 @@ class UFunc:
         (see https://github.com/mhostetter/galois/issues/358). This ufunc should be used in JIT function
         implementations (`Function.implementation`) to ensure bug #358 does not manifest.
         """
-        if self.field.ufunc_mode == "python-calculate":
-            # Specify `dtype=np.object_` for overridden ufuncs so Python int objects are returned, not np.intc (which
-            # will eventually overflow and produce incorrect results).
-            return self.python_calculate_call_only
-        if self.field.ufunc_mode == "jit-lookup" and not self.always_calculate:
-            return self.jit_lookup
-        return self.jit_calculate
+        pass
 
     @property
     def jit_calculate(self) -> numba.types.FunctionType:
         """
         A JIT-compiled ufunc implemented using explicit calculation.
         """
-        if self.override:
-            return self.override
-
-        key_1 = (self.field.characteristic, self.field.degree, int(self.field.irreducible_poly))
-        key_2 = str(self.__class__)
-        self._CACHE_CALCULATE.setdefault(key_1, {})
-
-        if key_2 not in self._CACHE_CALCULATE[key_1]:
-            self.set_calculate_globals()  # Set the globals once before JIT compiling the function
-
-            if self.type == "unary":
-                ufunc = numba.vectorize(["int64(int64)"], nopython=True)(self.calculate)
-            else:
-                ufunc = numba.vectorize(["int64(int64, int64)"], nopython=True)(self.calculate)
-            self._CACHE_CALCULATE[key_1][key_2] = ufunc
-
-        return self._CACHE_CALCULATE[key_1][key_2]
+        pass
 
     @property
     def jit_lookup(self) -> numba.types.FunctionType:
         """
         A JIT-compiled ufunc implemented using lookup tables.
         """
-        if self.override:
-            return self.override
-
-        key_1 = (self.field.characteristic, self.field.degree, int(self.field.irreducible_poly))
-        key_2 = (str(self.__class__), int(self.field.primitive_element))
-        self._CACHE_LOOKUP.setdefault(key_1, {})
-
-        if key_2 not in self._CACHE_LOOKUP[key_1]:
-            # Ensure the lookup tables were created
-            assert self.field._EXP.size > 0
-            assert self.field._LOG.size > 0
-            assert self.field._ZECH_LOG.size > 0
-            self.set_lookup_globals()  # Set the globals once before JIT compiling the function
-
-            if self.type == "unary":
-                self._CACHE_LOOKUP[key_1][key_2] = numba.vectorize(["int64(int64)"], nopython=True)(self.lookup)
-            else:
-                self._CACHE_LOOKUP[key_1][key_2] = numba.vectorize(["int64(int64, int64)"], nopython=True)(self.lookup)
-
-        return self._CACHE_LOOKUP[key_1][key_2]
+        pass
 
     @property
     def python_calculate(self) -> Callable:
         """
         A pure-Python ufunc implemented using explicit calculation.
         """
-        if self.override:
-            return self.override
-
-        self.set_calculate_globals()  # Set the globals each time before invoking the pure-Python function
-
-        if self.type == "unary":
-            return np.frompyfunc(self.calculate, 1, 1)
-
-        return np.frompyfunc(self.calculate, 2, 1)
+        pass
 
     @property
     def python_calculate_call_only(self) -> Callable:
@@ -166,12 +117,7 @@ class UFunc:
         This ufunc is the same as `python_calculate_call_only`, however it fixes a bug in overridden pure-Python ufuncs
         (see https://github.com/mhostetter/galois/issues/358).
         """
-        if self.override:
-            # Specify `dtype=np.object_` for overridden ufuncs so Python int objects are returned, not np.intc (which
-            # will eventually overflow and produce incorrect results).
-            return lambda *args, **kwargs: self.override(*args, **kwargs, dtype=np.object_)
-
-        return self.python_calculate
+        pass
 
     ###############################################################################
     # Input/output verification
@@ -344,11 +290,8 @@ class add_ufunc(UFunc):
     type = "binary"
 
     def __call__(self, ufunc, method, inputs, kwargs, meta):
-        self._verify_operands_in_same_field(ufunc, inputs, meta)
-        inputs, kwargs = self._view_inputs_as_ndarray(inputs, kwargs)
-        output = getattr(self.ufunc, method)(*inputs, **kwargs)
-        output = self._view_output_as_field(output, self.field, meta["dtype"])
-        return output
+        """Stub for __call__."""
+        pass
 
 
 class negative_ufunc(UFunc):
@@ -359,11 +302,8 @@ class negative_ufunc(UFunc):
     type = "unary"
 
     def __call__(self, ufunc, method, inputs, kwargs, meta):
-        self._verify_unary_method_not_reduction(ufunc, method)
-        inputs, kwargs = self._view_inputs_as_ndarray(inputs, kwargs)
-        output = getattr(self.ufunc, method)(*inputs, **kwargs)
-        output = self._view_output_as_field(output, self.field, meta["dtype"])
-        return output
+        """Stub for __call__."""
+        pass
 
 
 class subtract_ufunc(UFunc):
@@ -374,11 +314,8 @@ class subtract_ufunc(UFunc):
     type = "binary"
 
     def __call__(self, ufunc, method, inputs, kwargs, meta):
-        self._verify_operands_in_same_field(ufunc, inputs, meta)
-        inputs, kwargs = self._view_inputs_as_ndarray(inputs, kwargs)
-        output = getattr(self.ufunc, method)(*inputs, **kwargs)
-        output = self._view_output_as_field(output, self.field, meta["dtype"])
-        return output
+        """Stub for __call__."""
+        pass
 
 
 class multiply_ufunc(UFunc):
@@ -389,20 +326,8 @@ class multiply_ufunc(UFunc):
     type = "binary"
 
     def __call__(self, ufunc, method, inputs, kwargs, meta):
-        if len(meta["non_field_operands"]) > 0:
-            # Scalar multiplication
-            self._verify_operands_in_field_or_int(ufunc, inputs, meta)
-            inputs, kwargs = self._view_inputs_as_ndarray(inputs, kwargs)
-            i = meta["non_field_operands"][0]  # Scalar multiplicand
-            if meta["dtype"] == np.object_:
-                # Need to explicitly cast to np.object_ in NumPy v2.0 or the integer will overflow
-                inputs[i] = np.mod(inputs[i], self.field.characteristic, dtype=np.object_)
-            else:
-                inputs[i] = np.mod(inputs[i], self.field.characteristic)
-        inputs, kwargs = self._view_inputs_as_ndarray(inputs, kwargs)
-        output = getattr(self.ufunc, method)(*inputs, **kwargs)
-        output = self._view_output_as_field(output, self.field, meta["dtype"])
-        return output
+        """Stub for __call__."""
+        pass
 
 
 class reciprocal_ufunc(UFunc):
@@ -413,11 +338,8 @@ class reciprocal_ufunc(UFunc):
     type = "unary"
 
     def __call__(self, ufunc, method, inputs, kwargs, meta):
-        self._verify_unary_method_not_reduction(ufunc, method)
-        inputs, kwargs = self._view_inputs_as_ndarray(inputs, kwargs)
-        output = getattr(self.ufunc, method)(*inputs, **kwargs)
-        output = self._view_output_as_field(output, self.field, meta["dtype"])
-        return output
+        """Stub for __call__."""
+        pass
 
 
 class divide_ufunc(UFunc):
@@ -428,17 +350,8 @@ class divide_ufunc(UFunc):
     type = "binary"
 
     def __call__(self, ufunc, method, inputs, kwargs, meta):
-        self._verify_operands_in_same_field(ufunc, inputs, meta)
-        inputs, kwargs = self._view_inputs_as_ndarray(inputs, kwargs)
-        if method == "__call__":
-            # When dividing two arrays, instead multiply by the reciprocal. This is vastly
-            # more efficient when the denominator is a scalar or smaller (broadcasted) array.
-            inputs[1] = self.field._reciprocal.ufunc(inputs[1])
-            output = getattr(self.field._multiply.ufunc, method)(*inputs, **kwargs)
-        else:
-            output = getattr(self.ufunc, method)(*inputs, **kwargs)
-        output = self._view_output_as_field(output, self.field, meta["dtype"])
-        return output
+        """Stub for __call__."""
+        pass
 
 
 class divmod_ufunc(UFunc):
@@ -451,10 +364,8 @@ class divmod_ufunc(UFunc):
     type = "binary"
 
     def __call__(self, ufunc, method, inputs, kwargs, meta):
-        q = getattr(np.divide, method)(*inputs, **kwargs)
-        r = self.field.Zeros(q.shape, dtype=meta["dtype"])
-        output = q, r
-        return output
+        """Stub for __call__."""
+        pass
 
 
 # TODO: Fix this atrocity
@@ -469,9 +380,8 @@ class remainder_ufunc(UFunc):
 
     def __call__(self, ufunc, method, inputs, kwargs, meta):
         # Perform dummy addition operation to get shape of output zeros
-        x = getattr(np.add, method)(*inputs, **kwargs)
-        output = self.field.Zeros(x.shape, dtype=meta["dtype"])
-        return output
+        """Stub for __call__."""
+        pass
 
 
 class power_ufunc(UFunc):
@@ -482,12 +392,8 @@ class power_ufunc(UFunc):
     type = "binary"
 
     def __call__(self, ufunc, method, inputs, kwargs, meta):
-        self._verify_binary_method_not_reduction(ufunc, method)
-        self._verify_operands_first_field_second_int(ufunc, inputs, meta)
-        inputs, kwargs = self._view_inputs_as_ndarray(inputs, kwargs)
-        output = getattr(self.ufunc, method)(*inputs, **kwargs)
-        output = self._view_output_as_field(output, self.field, meta["dtype"])
-        return output
+        """Stub for __call__."""
+        pass
 
 
 class square_ufunc(UFunc):
@@ -500,12 +406,8 @@ class square_ufunc(UFunc):
     type = "unary"
 
     def __call__(self, ufunc, method, inputs, kwargs, meta):
-        self._verify_unary_method_not_reduction(ufunc, method)
-        inputs = list(inputs) + [2]
-        inputs, kwargs = self._view_inputs_as_ndarray(inputs, kwargs)
-        output = getattr(self.field._power.ufunc, method)(*inputs, **kwargs)
-        output = self._view_output_as_field(output, self.field, meta["dtype"])
-        return output
+        """Stub for __call__."""
+        pass
 
 
 class log_ufunc(UFunc):
@@ -516,13 +418,8 @@ class log_ufunc(UFunc):
     type = "binary"
 
     def __call__(self, ufunc, method, inputs, kwargs, meta):
-        self._verify_method_only_call(ufunc, method)
-        inputs = list(inputs) + [int(self.field.primitive_element)]
-        inputs, kwargs = self._view_inputs_as_ndarray(inputs, kwargs)
-        output = getattr(self.ufunc, method)(*inputs, **kwargs)
-        if output.dtype == np.object_:
-            output = output.astype(int)
-        return output
+        """Stub for __call__."""
+        pass
 
 
 class sqrt_ufunc(UFunc):
@@ -533,14 +430,14 @@ class sqrt_ufunc(UFunc):
     type = "unary"
 
     def __call__(self, ufunc, method, inputs, kwargs, meta):
-        self._verify_method_only_call(ufunc, method)
-        return self.implementation(*inputs)
+        """Stub for __call__."""
+        pass
 
     def implementation(self, a: Array) -> Array:
         """
         Computes the square root of an element in a Galois field or Galois ring.
         """
-        raise NotImplementedError
+        pass
 
 
 class matmul_ufunc(UFunc):
@@ -551,8 +448,8 @@ class matmul_ufunc(UFunc):
     type = "binary"
 
     def __call__(self, ufunc, method, inputs, kwargs, meta):
-        self._verify_method_only_call(ufunc, method)
-        return matmul_jit(self.field)(*inputs, **kwargs)
+        """Stub for __call__."""
+        pass
 
 
 ###############################################################################

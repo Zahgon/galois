@@ -45,33 +45,7 @@ class PrimeFactorsDatabase(DatabaseInterface):
         Returns:
             A tuple containing the prime factors and multiplicities.
         """
-        # Integer string conversion length limitation since Python 3.11
-        # https://github.com/mhostetter/galois/issues/494
-        if hasattr(sys, "set_int_max_str_digits"):
-            default_limit = sys.get_int_max_str_digits()
-            sys.set_int_max_str_digits(0)
-            n = str(n)
-            sys.set_int_max_str_digits(default_limit)
-
-        with self._lock:
-            self.cursor.execute(
-                """
-                SELECT factors, multiplicities, composite
-                FROM factorizations
-                WHERE value=?
-                """,
-                (str(n),),
-            )
-            result = self.cursor.fetchone()
-
-        if result is None:
-            raise LookupError(f"The prime factors database does not contain an entry for {n}.")
-
-        factors = [int(x) for x in result[0].split(",")]
-        multiplicities = [int(x) for x in result[1].split(",")]
-        composite = int(result[2])
-
-        return factors, multiplicities, composite
+        pass
 
 
 class IrreduciblePolyDatabase(DatabaseInterface):
@@ -92,26 +66,7 @@ class IrreduciblePolyDatabase(DatabaseInterface):
         Returns:
             A tuple containing the non-zero degrees and coefficients of the irreducible polynomial.
         """
-        with self._lock:
-            self.cursor.execute(
-                """
-                SELECT nonzero_degrees, nonzero_coeffs
-                FROM polys
-                WHERE characteristic=? AND degree=?""",
-                (characteristic, degree),
-            )
-            result = self.cursor.fetchone()
-
-        if result is None:
-            raise LookupError(
-                f"The irreducible polynomials database does not contain an entry for a degree-{degree} polynomial "
-                f"over GF({characteristic})."
-            )
-
-        nonzero_degrees = [int(_) for _ in result[0].split(",")]
-        nonzero_coeffs = [int(_) for _ in result[1].split(",")]
-
-        return nonzero_degrees, nonzero_coeffs
+        pass
 
 
 class ConwayPolyDatabase(DatabaseInterface):
@@ -132,28 +87,4 @@ class ConwayPolyDatabase(DatabaseInterface):
         Returns:
             A tuple containing the non-zero degrees and coefficients of the Conway polynomial.
         """
-        with self._lock:
-            self.cursor.execute(
-                """
-                SELECT nonzero_degrees, nonzero_coeffs
-                FROM polys
-                WHERE characteristic=? AND degree=?
-                """,
-                (characteristic, degree),
-            )
-            result = self.cursor.fetchone()
-
-        if result is None:
-            raise LookupError(
-                f"Frank Luebeck's database of Conway polynomials does not contain an entry for a degree-{degree} "
-                f"polynomial over GF({characteristic}). "
-                f"See http://www.math.rwth-aachen.de/~Frank.Luebeck/data/ConwayPol/index.html for his complete list "
-                "of polynomials.\n\n"
-                "Alternatively, you can find irreducible polynomials with `galois.irreducible_poly(p, m)` "
-                "or primitive polynomials with `galois.primitive_poly(p, m)`."
-            )
-
-        nonzero_degrees = [int(_) for _ in result[0].split(",")]
-        nonzero_coeffs = [int(_) for _ in result[1].split(",")]
-
-        return nonzero_degrees, nonzero_coeffs
+        pass

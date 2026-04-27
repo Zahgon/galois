@@ -115,29 +115,7 @@ def is_normal_element(element: PolyLike, irreducible_poly: Poly) -> bool:
     Group:
         galois-fields-normal-elements
     """
-    verify_isinstance(irreducible_poly, Poly)
-    field = irreducible_poly.field
-
-    # Convert element into a Poly object over the same base field as irreducible_poly
-    element = Poly.Like(element, field=field)
-
-    if element.field is not irreducible_poly.field:
-        raise ValueError(
-            f"Arguments 'element' and 'irreducible_poly' must be over the same field, "
-            f"not {element.field.name} and {irreducible_poly.field.name}."
-        )
-    if not element.degree < irreducible_poly.degree:
-        raise ValueError(
-            f"Argument 'element' must have degree less than 'irreducible_poly', "
-            f"not degrees {element.degree} and {irreducible_poly.degree}."
-        )
-    if not irreducible_poly.is_irreducible():
-        raise ValueError(
-            f"Argument 'irreducible_poly' must be irreducible, "
-            f"{irreducible_poly} is reducible over {irreducible_poly.field.name}."
-        )
-
-    return _is_normal_element(element, irreducible_poly)
+    pass
 
 
 def _is_normal_element(element: Poly, irreducible_poly: Poly) -> bool:
@@ -155,34 +133,7 @@ def _is_normal_element(element: Poly, irreducible_poly: Poly) -> bool:
         `True` if the residue class of $g(x)$ modulo $f(x)$ is normal over $\mathrm{GF}(q)$,
         otherwise `False`.
     """
-    GF = irreducible_poly.field
-    q = GF.order
-    m = irreducible_poly.degree
-
-    # Build the m x m matrix whose j-th column is the coordinate vector (over GF(q)) of a^{q^j}
-    # in the power basis {1, α, ..., α^{m-1}}, where a = g(α).
-    M = GF.Zeros((m, m))
-
-    # a^{q^0}, a^{q^1}, ..., a^{q^{m-1}}
-    a_power = element
-    for j in range(m):
-        # Reduce modulo f(x) to get representative of a^{q^j}
-        a_power = Poly(a_power.coeffs, field=GF)  # Ensure canonical Poly type
-        a_power = a_power % irreducible_poly
-
-        # Extract coefficients c_0, ..., c_{m-1} in a fixed order (descending powers).
-        # Poly.coefficients(m, order="desc") returns a length-m vector in GF(q).
-        coeffs = a_power.coefficients(m, order="desc")
-        M[:, j] = coeffs
-
-        # Next Frobenius power: a_power <- a_power^q (in GF(q^m))
-        a_power = pow(a_power, q, irreducible_poly)
-
-    # Treating entries as reals preserves linear-independence tests in practice:
-    # any GF(q)-linear dependency among these 0,1,...,q-1 coefficients induces an R-dependency.
-    rank = np.linalg.matrix_rank(M)
-
-    return rank == m
+    pass
 
 
 @export
@@ -259,44 +210,7 @@ def normal_element(irreducible_poly: Poly, method: Literal["min", "max", "random
     Group:
         galois-fields-normal-elements
     """
-    verify_isinstance(irreducible_poly, Poly)
-    field = irreducible_poly.field
-
-    if not irreducible_poly.degree > 1:
-        raise ValueError(f"Argument 'irreducible_poly' must have degree greater than 1, not {irreducible_poly.degree}.")
-    if not irreducible_poly.is_irreducible():
-        raise ValueError(
-            f"Argument 'irreducible_poly' must be irreducible, "
-            f"{irreducible_poly} is reducible over {irreducible_poly.field.name}."
-        )
-    if method not in ["min", "max", "random"]:
-        raise ValueError(f"Argument 'method' must be in ['min', 'max', 'random'], not {method!r}.")
-
-    q = field.order
-    m = irreducible_poly.degree
-
-    # Skip constants 0..q-1 (elements of GF(q)), which cannot be normal in GF(q^m) for m > 1
-    start = q
-    stop = q**m
-
-    if method == "min":
-        for integer in range(start, stop):
-            element = Poly.Int(integer, field=field)
-            if _is_normal_element(element, irreducible_poly):
-                return element
-    elif method == "max":
-        for integer in range(stop - 1, start - 1, -1):
-            element = Poly.Int(integer, field=field)
-            if _is_normal_element(element, irreducible_poly):
-                return element
-    else:
-        while True:
-            integer = random.randint(start, stop - 1)
-            element = Poly.Int(integer, field=field)
-            if _is_normal_element(element, irreducible_poly):
-                return element
-
-    raise RuntimeError(f"No normal elements in GF({q}^{m}) were found with irreducible polynomial {irreducible_poly}.")
+    pass
 
 
 @export
@@ -383,29 +297,4 @@ def normal_elements(irreducible_poly: Poly) -> list[Poly]:
     Group:
         galois-fields-normal-elements
     """
-    verify_isinstance(irreducible_poly, Poly)
-    field = irreducible_poly.field
-
-    if not irreducible_poly.degree > 1:
-        raise ValueError(f"Argument 'irreducible_poly' must have degree greater than 1, not {irreducible_poly.degree}.")
-    if not irreducible_poly.is_irreducible():
-        raise ValueError(
-            f"Argument 'irreducible_poly' must be irreducible, "
-            f"{irreducible_poly} is reducible over {irreducible_poly.field.name}."
-        )
-
-    q = field.order
-    m = irreducible_poly.degree
-
-    elements: list[Poly] = []
-
-    # Iterate over all non-constant representative polynomials g(x) (integers q..q^m-1)
-    for integer in range(q, q**m):
-        element = Poly.Int(integer, field=field)
-        if _is_normal_element(element, irreducible_poly):
-            elements.append(element)
-
-    # Sort elements lexicographically by their integer representation
-    elements = sorted(elements, key=int)
-
-    return elements
+    pass

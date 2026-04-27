@@ -141,10 +141,8 @@ class add_modular(_lookup.add_ufunc):
 
     @staticmethod
     def calculate(a: int, b: int) -> int:
-        c = a + b
-        if c >= CHARACTERISTIC:
-            c -= CHARACTERISTIC
-        return c
+        """Stub for calculate."""
+        pass
 
 
 class add_vector(_lookup.add_ufunc):
@@ -173,12 +171,8 @@ class add_vector(_lookup.add_ufunc):
 
     @staticmethod
     def calculate(a: int, b: int) -> int:
-        a_vec = INT_TO_VECTOR(a, CHARACTERISTIC, DEGREE)
-        b_vec = INT_TO_VECTOR(b, CHARACTERISTIC, DEGREE)
-        c_vec = (a_vec + b_vec) % CHARACTERISTIC
-        c = VECTOR_TO_INT(c_vec, CHARACTERISTIC, DEGREE)
-
-        return c
+        """Stub for calculate."""
+        pass
 
 
 class negative_modular(_lookup.negative_ufunc):
@@ -192,11 +186,8 @@ class negative_modular(_lookup.negative_ufunc):
 
     @staticmethod
     def calculate(a: int) -> int:
-        if a == 0:
-            c = 0
-        else:
-            c = CHARACTERISTIC - a
-        return c
+        """Stub for calculate."""
+        pass
 
 
 class negative_vector(_lookup.negative_ufunc):
@@ -225,11 +216,8 @@ class negative_vector(_lookup.negative_ufunc):
 
     @staticmethod
     def calculate(a: int) -> int:
-        a_vec = INT_TO_VECTOR(a, CHARACTERISTIC, DEGREE)
-        c_vec = (-a_vec) % CHARACTERISTIC
-        c = VECTOR_TO_INT(c_vec, CHARACTERISTIC, DEGREE)
-
-        return c
+        """Stub for calculate."""
+        pass
 
 
 class subtract_modular(_lookup.subtract_ufunc):
@@ -243,12 +231,8 @@ class subtract_modular(_lookup.subtract_ufunc):
 
     @staticmethod
     def calculate(a: int, b: int) -> int:
-        if a >= b:
-            c = a - b
-        else:
-            c = CHARACTERISTIC + a - b
-
-        return c
+        """Stub for calculate."""
+        pass
 
 
 class subtract_vector(_lookup.subtract_ufunc):
@@ -277,12 +261,8 @@ class subtract_vector(_lookup.subtract_ufunc):
 
     @staticmethod
     def calculate(a: int, b: int) -> int:
-        a_vec = INT_TO_VECTOR(a, CHARACTERISTIC, DEGREE)
-        b_vec = INT_TO_VECTOR(b, CHARACTERISTIC, DEGREE)
-        c_vec = (a_vec - b_vec) % CHARACTERISTIC
-        c = VECTOR_TO_INT(c_vec, CHARACTERISTIC, DEGREE)
-
-        return c
+        """Stub for calculate."""
+        pass
 
 
 class multiply_binary(_lookup.multiply_ufunc):
@@ -308,20 +288,8 @@ class multiply_binary(_lookup.multiply_ufunc):
     @staticmethod
     def calculate(a: int, b: int) -> int:
         # Re-order operands such that a > b so the while loop has less loops
-        if b > a:
-            a, b = b, a
-
-        c = 0
-        while b > 0:
-            if b & 0b1:
-                c ^= a  # Add a(x) to c(x)
-
-            b >>= 1  # Divide b(x) by x
-            a <<= 1  # Multiply a(x) by x
-            if a >= ORDER:
-                a ^= IRREDUCIBLE_POLY  # Compute a(x) % p(x)
-
-        return c
+        """Stub for calculate."""
+        pass
 
 
 class multiply_modular(_lookup.multiply_ufunc):
@@ -335,9 +303,8 @@ class multiply_modular(_lookup.multiply_ufunc):
 
     @staticmethod
     def calculate(a: int, b: int) -> int:
-        c = (a * b) % CHARACTERISTIC
-
-        return c
+        """Stub for calculate."""
+        pass
 
 
 class multiply_vector(_lookup.multiply_ufunc):
@@ -354,33 +321,8 @@ class multiply_vector(_lookup.multiply_ufunc):
 
     @staticmethod
     def calculate(a: int, b: int) -> int:
-        a_vec = INT_TO_VECTOR(a, CHARACTERISTIC, DEGREE)
-        b_vec = INT_TO_VECTOR(b, CHARACTERISTIC, DEGREE)
-
-        # The irreducible polynomial with the x^degree term removed
-        irreducible_poly_vec = INT_TO_VECTOR(IRREDUCIBLE_POLY - CHARACTERISTIC**DEGREE, CHARACTERISTIC, DEGREE)
-
-        c_vec = np.zeros(DEGREE, dtype=DTYPE)
-        for _ in range(DEGREE):
-            if b_vec[-1] > 0:
-                c_vec = (c_vec + b_vec[-1] * a_vec) % CHARACTERISTIC
-
-            # Multiply a(x) by x
-            q = a_vec[0]
-            a_vec[:-1] = a_vec[1:]
-            a_vec[-1] = 0
-
-            # Reduce a(x) modulo the irreducible polynomial
-            if q > 0:
-                a_vec = (a_vec - q * irreducible_poly_vec) % CHARACTERISTIC
-
-            # Divide b(x) by x
-            b_vec[1:] = b_vec[:-1]
-            b_vec[0] = 0
-
-        c = VECTOR_TO_INT(c_vec, CHARACTERISTIC, DEGREE)
-
-        return c
+        """Stub for calculate."""
+        pass
 
 
 class reciprocal_modular_egcd(_lookup.reciprocal_ufunc):
@@ -400,21 +342,7 @@ class reciprocal_modular_egcd(_lookup.reciprocal_ufunc):
         y = a in GF(p)
         t = a**-1 in GF(p)
         """
-        if a == 0:
-            raise ZeroDivisionError("Cannot compute the multiplicative inverse of 0 in a Galois field.")
-
-        r2, r1 = CHARACTERISTIC, a
-        t2, t1 = 0, 1
-
-        while r1 != 0:
-            q = r2 // r1
-            r2, r1 = r1, r2 - q * r1
-            t2, t1 = t1, t2 - q * t1
-
-        if t2 < 0:
-            t2 += CHARACTERISTIC
-
-        return t2
+        pass
 
 
 # NOTE: Commented out because it's not currently being used. This prevents it from being
@@ -468,25 +396,8 @@ class reciprocal_itoh_tsujii(_lookup.reciprocal_ufunc):
 
     @staticmethod
     def calculate(a: int) -> int:
-        if a == 0:
-            raise ZeroDivisionError("Cannot compute the multiplicative inverse of 0 in a Galois field.")
-
-        # Step 1: Compute r = (p^m - 1) / (p - 1)
-        r = (ORDER - 1) // (CHARACTERISTIC - 1)
-
-        # Step 2: Compute a^(r - 1)
-        a_r1 = POSITIVE_POWER(a, r - 1)
-
-        # Step 3: Compute a^r = a^(r - 1) * a, a^r is in GF(p)
-        a_r = MULTIPLY(a_r1, a)
-
-        # Step 4: Compute (a^r)^-1 in GF(p)
-        a_r_inv = SUBFIELD_RECIPROCAL(a_r)
-
-        # Step 5: Compute a^-1 = (a^r)^-1 * a^(r - 1)
-        a_inv = MULTIPLY(a_r_inv, a_r1)
-
-        return a_inv
+        """Stub for calculate."""
+        pass
 
 
 class divide(_lookup.divide_ufunc):
@@ -501,16 +412,8 @@ class divide(_lookup.divide_ufunc):
 
     @staticmethod
     def calculate(a: int, b: int) -> int:
-        if b == 0:
-            raise ZeroDivisionError("Cannot compute the multiplicative inverse of 0 in a Galois field.")
-
-        if a == 0:
-            c = 0
-        else:
-            b_inv = RECIPROCAL(b)
-            c = MULTIPLY(a, b_inv)
-
-        return c
+        """Stub for calculate."""
+        pass
 
 
 class positive_power_square_and_multiply(_lookup.power_ufunc):
@@ -533,26 +436,8 @@ class positive_power_square_and_multiply(_lookup.power_ufunc):
 
     @staticmethod
     def calculate(a: int, b: int) -> int:
-        if a == 0 and b < 0:
-            raise ZeroDivisionError("Cannot compute the multiplicative inverse of 0 in a Galois field.")
-        assert b >= 0
-
-        if b == 0:
-            return 1
-
-        c_square = a  # The "squaring" part
-        c_mult = 1  # The "multiplicative" part
-
-        while b > 1:
-            if b % 2 == 0:
-                c_square = MULTIPLY(c_square, c_square)
-                b //= 2
-            else:
-                c_mult = MULTIPLY(c_mult, c_square)
-                b -= 1
-        c = MULTIPLY(c_mult, c_square)
-
-        return c
+        """Stub for calculate."""
+        pass
 
 
 class power_square_and_multiply(_lookup.power_ufunc):
@@ -578,18 +463,8 @@ class power_square_and_multiply(_lookup.power_ufunc):
 
     @staticmethod
     def calculate(a: int, b: int) -> int:
-        if a == 0 and b < 0:
-            raise ZeroDivisionError("Cannot compute the multiplicative inverse of 0 in a Galois field.")
-
-        if b == 0:
-            c = 1
-        elif b > 0:
-            c = POSITIVE_POWER(a, b)
-        else:
-            a_inv = RECIPROCAL(a)
-            c = POSITIVE_POWER(a_inv, abs(b))
-
-        return c
+        """Stub for calculate."""
+        pass
 
 
 class log_brute_force(_lookup.log_ufunc):
@@ -611,16 +486,7 @@ class log_brute_force(_lookup.log_ufunc):
         i = log(beta, alpha)
         beta = alpha^i
         """
-        if beta == 0:
-            raise ArithmeticError("Cannot compute the discrete logarithm of 0 in a Galois field.")
-
-        c = 1
-        for i in range(0, ORDER - 1):
-            if c == beta:
-                return i
-            c = MULTIPLY(c, alpha)
-
-        raise ArithmeticError("The specified logarithm base is not a primitive element of the Galois field.")
+        pass
 
 
 class log_pollard_rho(_lookup.log_ufunc):
@@ -643,58 +509,7 @@ class log_pollard_rho(_lookup.log_ufunc):
 
         Algorithm 3.60 from https://cacr.uwaterloo.ca/hac/about/chap3.pdf
         """
-        if beta == 0:
-            raise ArithmeticError("Cannot compute the discrete logarithm of 0 in a Galois field.")
-
-        n = ORDER - 1  # Order of the multiplicative group of GF(p^m), must be prime
-        x0, a0, b0 = 1, 0, 0
-        xi, ai, bi = x0, a0, b0
-        x2i, a2i, b2i = xi, ai, bi
-
-        def compute_x(x):
-            # Equation 3.2
-            if x % 3 == 1:
-                return MULTIPLY(beta, x)
-            if x % 3 == 2:
-                return MULTIPLY(x, x)
-            return MULTIPLY(alpha, x)
-
-        def compute_a(a, x):
-            # Equation 3.3
-            if x % 3 == 1:
-                return a
-            if x % 3 == 2:
-                return (2 * a) % n
-            return (a + 1) % n
-
-        def compute_b(b, x):
-            # Equation 3.4
-            if x % 3 == 1:
-                return (b + 1) % n
-            if x % 3 == 2:
-                return (2 * b) % n
-            return b
-
-        while True:
-            xi, ai, bi = compute_x(xi), compute_a(ai, xi), compute_b(bi, xi)
-
-            x2i, a2i, b2i = compute_x(x2i), compute_a(a2i, x2i), compute_b(b2i, x2i)
-            x2i, a2i, b2i = compute_x(x2i), compute_a(a2i, x2i), compute_b(b2i, x2i)
-
-            if xi == x2i:
-                r = (bi - b2i) % n
-                if r != 0:
-                    d, r_inv = EGCD(r, n)[0:2]
-                    assert d == 1
-                    return (r_inv * (a2i - ai)) % n
-
-                # Re-try with different x0, a0, and b0
-                a0 += 1
-                b0 += 1
-                x0 = MULTIPLY(x0, beta)
-                x0 = MULTIPLY(x0, alpha)
-                xi, ai, bi = x0, a0, b0
-                x2i, a2i, b2i = xi, ai, bi
+        pass
 
 
 class log_pohlig_hellman(_lookup.log_ufunc):
@@ -728,31 +543,7 @@ class log_pohlig_hellman(_lookup.log_ufunc):
 
         Algorithm 3.63 from https://cacr.uwaterloo.ca/hac/about/chap3.pdf
         """
-        if beta == 0:
-            raise ArithmeticError("Cannot compute the discrete logarithm of 0 in a Galois field.")
-
-        r = len(FACTORS)
-        n = ORDER - 1  # Order of the multiplicative group of GF(p^m), must be prime
-
-        x = np.zeros(r, dtype=DTYPE)
-        m = np.zeros(r, dtype=DTYPE)
-        for i in range(r):
-            q = FACTORS[i]
-            e = MULTIPLICITIES[i]
-            m[i] = q**e
-            gamma = 1
-            alpha_bar = POWER(alpha, n // q)
-            l_prev = 0  # Starts as l_i-1
-            q_prev = 0  # Starts as q^(-1)
-            for j in range(e):
-                gamma = MULTIPLY(gamma, POWER(alpha, l_prev * q_prev))
-                beta_bar = POWER(MULTIPLY(beta, RECIPROCAL(gamma)), n // (q ** (j + 1)))
-                l = BRUTE_FORCE_LOG(beta_bar, alpha_bar)
-                x[i] += l * q**j
-                l_prev = l
-                q_prev = q**j
-
-        return CRT(x, m)
+        pass
 
 
 class sqrt_binary(_lookup.sqrt_ufunc):
@@ -764,7 +555,7 @@ class sqrt_binary(_lookup.sqrt_ufunc):
         """
         Fact 3.42 from https://cacr.uwaterloo.ca/hac/about/chap3.pdf.
         """
-        return a ** (self.field.characteristic ** (self.field.degree - 1))
+        pass
 
 
 class sqrt(_lookup.sqrt_ufunc):
@@ -777,56 +568,4 @@ class sqrt(_lookup.sqrt_ufunc):
         Algorithm 3.34 from https://cacr.uwaterloo.ca/hac/about/chap3.pdf.
         Algorithm 3.36 from https://cacr.uwaterloo.ca/hac/about/chap3.pdf.
         """
-        if not np.all(a.is_square()):
-            raise ArithmeticError(
-                f"Input array has elements that are non-squares in {self.field.name}.\n{a[~a.is_square()]}"
-            )
-
-        p = self.field.characteristic
-        q = self.field.order
-
-        if q % 4 == 3:
-            roots = a ** ((q + 1) // 4)
-
-        elif q % 8 == 5:
-            d = a ** ((q - 1) // 4)
-            roots = self.field.Zeros(a.shape)
-
-            idxs = np.where(d == 1)
-            roots[idxs] = a[idxs] ** ((q + 3) // 8)
-
-            idxs = np.where(d == p - 1)
-            roots[idxs] = 2 * a[idxs] * (4 * a[idxs]) ** ((q - 5) // 8)
-
-        else:
-            # Find a non-square element `b`
-            while True:
-                b = self.field.Random(low=1)
-                if not b.is_square():
-                    break
-
-            # Write q - 1 = 2^s * t
-            n = q - 1
-            s = 0
-            while n % 2 == 0:
-                n >>= 1
-                s += 1
-            t = n
-            assert q - 1 == 2**s * t
-
-            roots = self.field.Zeros(a.shape)  # Empty array of roots
-
-            # Compute a root `r` for the non-zero elements
-            idxs = np.where(a > 0)  # Indices where a has a reciprocal
-            a_inv = np.reciprocal(a[idxs])
-            c = b**t
-            r = a[idxs] ** ((t + 1) // 2)
-            for i in range(1, s):
-                d = (r**2 * a_inv) ** (2 ** (s - i - 1))
-                r[np.where(d == p - 1)] *= c
-                c = c**2
-            roots[idxs] = r  # Assign non-zero roots to the original array
-
-        roots = self.field._view(np.minimum(roots, -roots))  # Return only the smaller root
-
-        return roots
+        pass

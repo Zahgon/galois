@@ -128,7 +128,4 @@ def printoptions(**kwargs) -> Generator[None, None, None]:
     Group:
         config
     """
-    options = get_printoptions()
-    set_printoptions(**kwargs)
-    yield
-    set_printoptions(**options)
+    pass

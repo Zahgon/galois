@@ -44,11 +44,8 @@ class add_jit(Function):
 
     @staticmethod
     def implementation(a, b):
-        dtype = a.dtype
-        c = np.zeros(max(a.size, b.size), dtype=dtype)
-        c[-a.size :] = a
-        c[-b.size :] = ADD(c[-b.size :], b)
-        return c
+        """Stub for implementation."""
+        pass
 
 
 def negative(a: Array) -> Array:
@@ -56,21 +53,14 @@ def negative(a: Array) -> Array:
     c(x) = -a(x)
     a(x) + -a(x) = 0
     """
-    return -a
+    pass
 
 
 def subtract(a: Array, b: Array) -> Array:
     """
     c(x) = a(x) - b(x)
     """
-    field = type(a)
-
-    # c(x) = a(x) - b(x)
-    c = field.Zeros(max(a.size, b.size))
-    c[-a.size :] = a
-    c[-b.size :] -= b
-
-    return c
+    pass
 
 
 class subtract_jit(Function):
@@ -104,11 +94,8 @@ class subtract_jit(Function):
 
     @staticmethod
     def implementation(a, b):
-        dtype = a.dtype
-        c = np.zeros(max(a.size, b.size), dtype=dtype)
-        c[-a.size :] = a
-        c[-b.size :] = SUBTRACT(c[-b.size :], b)
-        return c
+        """Stub for implementation."""
+        pass
 
 
 def multiply(a: Array, b: Array) -> Array:
@@ -116,11 +103,7 @@ def multiply(a: Array, b: Array) -> Array:
     c(x) = a(x) * b(x)
     c(x) = a(x) * b = a(x) + ... + a(x)
     """
-    # c(x) = a(x) * b(x)
-    if a.ndim == 0 or b.ndim == 0:
-        return a * b
-
-    return np.convolve(a, b)
+    pass
 
 
 class divmod_jit(Function):
@@ -181,21 +164,8 @@ class divmod_jit(Function):
 
     @staticmethod
     def implementation(a, b):
-        assert a.ndim == 2 and b.ndim == 1
-        assert a.shape[-1] >= b.shape[-1]
-
-        q_degree = a.shape[1] - b.shape[-1]
-        qr = a.copy()
-
-        for k in range(a.shape[0]):
-            for i in range(q_degree + 1):
-                if qr[k, i] > 0:
-                    q = MULTIPLY(qr[k, i], RECIPROCAL(b[0]))
-                    for j in range(1, b.size):
-                        qr[k, i + j] = SUBTRACT(qr[k, i + j], MULTIPLY(q, b[j]))
-                    qr[k, i] = q
-
-        return qr
+        """Stub for implementation."""
+        pass
 
 
 class floordiv_jit(Function):
@@ -231,24 +201,8 @@ class floordiv_jit(Function):
 
     @staticmethod
     def implementation(a, b):
-        if b.size == 1 and b[0] == 0:
-            raise ZeroDivisionError("Cannot divide a polynomial by zero.")
-
-        if a.size < b.size:
-            return np.array([0], dtype=a.dtype)
-
-        q_degree = a.size - b.size
-        q = np.zeros(q_degree + 1, dtype=a.dtype)
-        aa = a[0 : q_degree + 1].copy()
-
-        for i in range(q_degree + 1):
-            if aa[i] > 0:
-                q[i] = MULTIPLY(aa[i], RECIPROCAL(b[0]))
-                N = min(b.size, q_degree + 1 - i)  # We don't need to subtract in the "remainder" range
-                for j in range(1, N):
-                    aa[i + j] = SUBTRACT(aa[i + j], MULTIPLY(q[i], b[j]))
-
-        return q
+        """Stub for implementation."""
+        pass
 
 
 class mod_jit(Function):
@@ -284,40 +238,8 @@ class mod_jit(Function):
 
     @staticmethod
     def implementation(a, b):
-        if b.size == 1 and b[0] == 0:
-            raise ZeroDivisionError("Cannot divide a polynomial by zero.")
-
-        if a.size < b.size:
-            return a.copy()
-
-        if b.size == 1:
-            return np.array([0], dtype=a.dtype)
-
-        q_degree = a.size - b.size
-        r_degree = b.size - 1
-        r = np.zeros(r_degree + 1, dtype=a.dtype)
-        r[1:] = a[0:r_degree]
-
-        for i in range(q_degree + 1):
-            r = np.roll(r, -1)
-            r[-1] = a[i + r_degree]
-
-            if r[0] > 0:
-                q = MULTIPLY(r[0], RECIPROCAL(b[0]))
-                for j in range(1, b.size):
-                    r[j] = SUBTRACT(r[j], MULTIPLY(q, b[j]))
-
-        r = r[1:]
-
-        # Trim leading zeros to reduce computations in future calls
-        if r.size > 1:
-            idxs = np.nonzero(r)[0]
-            if idxs.size > 0:
-                r = r[idxs[0] :]
-            else:
-                r = r[-1:]
-
-        return r
+        """Stub for implementation."""
+        pass
 
 
 class pow_jit(Function):
@@ -368,37 +290,7 @@ class pow_jit(Function):
         """
         b is a vector of int64 [MSWord, ..., LSWord] so that arbitrarily large exponents may be passed
         """
-        if b_vec.size == 1 and b_vec[0] == 0:
-            return np.array([1], dtype=a.dtype)
-
-        result_s = a.copy()  # The "squaring" part
-        result_m = np.array([1], dtype=a.dtype)  # The "multiplicative" part
-
-        # Loop from LSWord to MSWord
-        for i in range(b_vec.size - 1, -1, -1):
-            j = 0  # Bit counter -- make sure we iterate through 63 bits on all but the most-significant word
-            while j < 63:
-                if i == 0 and b_vec[i] <= 1:
-                    # This is the MSB and we already accounted for the most-significant bit -- can exit now
-                    break
-
-                if b_vec[i] % 2 == 0:
-                    result_s = POLY_MULTIPLY(result_s, result_s)
-                    if c.size > 0:
-                        result_s = POLY_MOD(result_s, c)
-                    b_vec[i] //= 2
-                    j += 1
-                else:
-                    result_m = POLY_MULTIPLY(result_m, result_s)
-                    if c.size > 0:
-                        result_m = POLY_MOD(result_m, c)
-                    b_vec[i] -= 1
-
-        result = POLY_MULTIPLY(result_s, result_m)
-        if c.size > 0:
-            result = POLY_MOD(result, c)
-
-        return result
+        pass
 
 
 class evaluate_elementwise_jit(Function):
@@ -431,13 +323,8 @@ class evaluate_elementwise_jit(Function):
 
     @staticmethod
     def implementation(coeffs, values):
-        y = np.zeros(values.size, dtype=values.dtype)
-        for i in numba.prange(values.size):
-            y[i] = coeffs[0]
-            for j in range(1, coeffs.size):
-                y[i] = ADD(coeffs[j], MULTIPLY(y[i], values[i]))
-
-        return y
+        """Stub for implementation."""
+        pass
 
 
 class roots_jit(Function):
@@ -475,39 +362,5 @@ class roots_jit(Function):
 
     @staticmethod
     def implementation(nonzero_degrees, nonzero_coeffs, primitive_element):  # pragma: no cover
-        N = nonzero_degrees.size
-        lambda_vector = nonzero_coeffs.copy()
-        alpha_vector = np.zeros(N, dtype=nonzero_coeffs.dtype)
-        for i in range(N):
-            alpha_vector[i] = POWER(primitive_element, nonzero_degrees[i])
-        degree = np.max(nonzero_degrees)
-        roots = []
-        powers = []
-
-        # Test if 0 is a root
-        if nonzero_degrees[-1] != 0:
-            roots.append(0)
-            powers.append(nonzero_degrees[-1])  # 0 has multiplicity equal to the lowest degree of x that is non-zero
-
-        # Test if 1 is a root
-        _sum = 0
-        for i in range(N):
-            _sum = ADD(_sum, lambda_vector[i])
-        if _sum == 0:
-            roots.append(1)
-            powers.append(0)
-
-        # Test if the powers of alpha are roots
-        for i in range(1, ORDER - 1):
-            _sum = 0
-            for j in range(N):
-                lambda_vector[j] = MULTIPLY(lambda_vector[j], alpha_vector[j])
-                _sum = ADD(_sum, lambda_vector[j])
-            if _sum == 0:
-                root = POWER(primitive_element, i)
-                roots.append(root)
-                powers.append(i)
-            if len(roots) == degree:
-                break
-
-        return np.array([roots, powers])
+        """Stub for implementation."""
+        pass

@@ -135,9 +135,7 @@ class Array(LinalgFunctionMixin, FunctionMixin, UFuncMixin, np.ndarray, metaclas
 
         For internal library use only.
         """
-        with cls._view_without_verification():
-            array = array.view(cls)
-        return array
+        pass
 
     @classmethod
     @contextlib.contextmanager
@@ -147,10 +145,7 @@ class Array(LinalgFunctionMixin, FunctionMixin, UFuncMixin, np.ndarray, metaclas
 
         For internal library use only.
         """
-        prev_value = cls._verify_on_view
-        cls._verify_on_view = False
-        yield
-        cls._verify_on_view = prev_value
+        pass
 
     ###############################################################################
     # Alternate constructors
@@ -170,9 +165,7 @@ class Array(LinalgFunctionMixin, FunctionMixin, UFuncMixin, np.ndarray, metaclas
         Returns:
             An array of zeros.
         """
-        dtype = cls._get_dtype(dtype)
-        array = np.zeros(shape, dtype=dtype)
-        return cls._view(array)
+        pass
 
     @classmethod
     def Ones(cls, shape: ShapeLike, dtype: DTypeLike | None = None) -> Self:
@@ -188,9 +181,7 @@ class Array(LinalgFunctionMixin, FunctionMixin, UFuncMixin, np.ndarray, metaclas
         Returns:
             An array of ones.
         """
-        dtype = cls._get_dtype(dtype)
-        array = np.ones(shape, dtype=dtype)
-        return cls._view(array)
+        pass
 
     @classmethod
     def Range(
@@ -214,21 +205,7 @@ class Array(LinalgFunctionMixin, FunctionMixin, UFuncMixin, np.ndarray, metaclas
         Returns:
             A 1-D array of a range of elements.
         """
-        # Coerce element-like values to integers in [0, order)
-        if start != cls.order:
-            start = int(cls(start))
-        if stop != cls.order:
-            stop = int(cls(stop))
-        dtype = cls._get_dtype(dtype)
-
-        if not 0 <= start <= cls.order:
-            raise ValueError(f"Argument 'start' must be within the field's order {cls.order}, not {start}.")
-        if not 0 <= stop <= cls.order:
-            raise ValueError(f"Argument 'stop' must be within the field's order {cls.order}, not {stop}.")
-
-        array = np.arange(start, stop, step=step, dtype=dtype)
-
-        return cls._view(array)
+        pass
 
     @classmethod
     def Random(
@@ -256,46 +233,7 @@ class Array(LinalgFunctionMixin, FunctionMixin, UFuncMixin, np.ndarray, metaclas
         Returns:
             An array of random elements.
         """
-        # Coerce element-like values to integers in [0, p^m)
-        low = int(cls(low))
-        if high is None:
-            high = cls.order
-        elif high != cls.order:
-            high = int(cls(high))
-        dtype = cls._get_dtype(dtype)
-
-        if not 0 <= low < high <= cls.order:
-            raise ValueError(
-                f"Arguments must satisfy `0 <= low < high <= order`, not `0 <= {low} < {high} <= {cls.order}`."
-            )
-
-        if seed is not None:
-            if not isinstance(seed, (int, np.integer, np.random.Generator)):
-                raise ValueError("Seed must be an integer, a numpy.random.Generator or None.")
-            if isinstance(seed, (int, np.integer)) and seed < 0:
-                raise ValueError("Seed must be non-negative.")
-
-        if dtype != np.object_:
-            rng = np.random.default_rng(seed)
-            array = rng.integers(low, high, shape, dtype=dtype)
-        else:
-            array = np.empty(shape, dtype=dtype)
-            iterator = np.nditer(array, flags=["multi_index", "refs_ok"])
-            _seed = None
-            if seed is not None:
-                if isinstance(seed, np.integer):
-                    # np.integers not supported by random and seeding based on hashing deprecated since Python 3.9
-                    _seed = seed.item()
-                elif isinstance(seed, np.random.Generator):
-                    _seed = seed.bit_generator.state["state"]["state"]
-                    seed.bit_generator.advance(1)
-                else:  # int
-                    _seed = seed
-            random.seed(_seed)
-            for _ in iterator:
-                array[iterator.multi_index] = random.randint(low, high - 1)
-
-        return cls._view(array)
+        pass
 
     @classmethod
     def Identity(cls, size: int, dtype: DTypeLike | None = None) -> Self:
@@ -311,9 +249,7 @@ class Array(LinalgFunctionMixin, FunctionMixin, UFuncMixin, np.ndarray, metaclas
         Returns:
             A 2-D identity matrix with shape `(size, size)`.
         """
-        dtype = cls._get_dtype(dtype)
-        array = np.identity(size, dtype=dtype)
-        return cls._view(array)
+        pass
 
     ###############################################################################
     # Ufunc compilation routines
@@ -391,14 +327,7 @@ class Array(LinalgFunctionMixin, FunctionMixin, UFuncMixin, np.ndarray, metaclas
         Notes:
             This function updates :obj:`~galois.FieldArray.element_repr`.
         """
-        verify_literal(element_repr, ["int", "poly", "power"])
-
-        prev_element_repr = cls.element_repr
-        cls._element_repr = element_repr
-
-        # Return a context manager for optional use in a `with` statement that will reset the element representation
-        # to its original value
-        return cls._repr_context_manager(prev_element_repr)
+        pass
 
     @classmethod
     @contextlib.contextmanager

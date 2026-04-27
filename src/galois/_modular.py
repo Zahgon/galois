@@ -71,15 +71,7 @@ def totatives(n: int) -> list[int]:
     Group:
         number-theory-divisibility
     """
-    verify_isinstance(n, int)
-    if not n > 0:
-        raise ValueError(f"Argument 'n' must be a positive integer, not {n}.")
-
-    if n == 1:
-        # Represent the unique residue class modulo 1 by 0; ensures len(totatives(1)) == euler_phi(1) == 1.
-        return [0]
-
-    return [t for t in range(1, n) if math.gcd(n, t) == 1]
+    pass
 
 
 @export
@@ -174,7 +166,7 @@ def euler_phi(n: int) -> int:
     Group:
         number-theory-divisibility
     """
-    return _euler_phi(n)
+    pass
 
 
 # NOTE: This is a separate function to hide the "lru_cache" from the public API.
@@ -303,7 +295,7 @@ def mobius(n: int) -> int:
     Group:
         number-theory-divisibility
     """
-    return _mobius(n)
+    pass
 
 
 # NOTE: This is a separate function to hide the "lru_cache" from the public API.
@@ -447,28 +439,7 @@ def carmichael_lambda(n: int) -> int:
     Group:
         number-theory-congruences
     """
-    verify_isinstance(n, int)
-    if not n > 0:
-        raise ValueError(f"Argument 'n' must be a positive integer, not {n}.")
-
-    if n == 1:
-        # By convention, λ(1) = 1.
-        return 1
-
-    p, e = factors(n)
-
-    lambdas = []
-    for pi, ei in zip(p, e):
-        # Carmichael function for prime powers:
-        #   - λ(p^e) = φ(p^e) for odd p or for 2^e with e <= 2
-        #   - λ(2^e) = φ(2^e)/2 for e > 2
-        if pi == 2 and ei > 2:
-            l = euler_phi(pi**ei) // 2
-        else:
-            l = euler_phi(pi**ei)
-        lambdas.append(l)
-
-    return lcm(*lambdas)
+    pass
 
 
 @export
@@ -648,26 +619,4 @@ def is_cyclic(n: int) -> bool:
     Group:
         number-theory-congruences
     """
-    verify_isinstance(n, int)
-    if not n > 0:
-        raise ValueError(f"Argument 'n' must be a positive integer, not {n}.")
-
-    if n == 1:
-        # The trivial group (Z/1Z)^× is cyclic
-        return True
-
-    p, e = factors(n)
-
-    if n in [2, 4]:
-        return True
-
-    if len(p) == 2 and 2 in p and e[p.index(2)] == 1:
-        # n = 2 * p^k with p an odd prime (since 2 is one factor and has exponent 1)
-        return True
-
-    if len(p) == 1 and p[0] != 2:
-        # n = p^k with p an odd prime
-        return True
-
-    # n does not represent a cyclic group
-    return False
+    pass

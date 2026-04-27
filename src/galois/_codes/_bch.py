@@ -721,10 +721,8 @@ class BCH(_CyclicCode):
     def _decode_codeword(
         self, codeword: FieldArray, erasures: npt.NDArray | None = None
     ) -> tuple[FieldArray, np.ndarray]:
-        func = bch_decode_jit(self.field, self.extension_field)
-        dec_codeword, n_errors = func(codeword, erasures, self.n, int(self.alpha), self.c, self.roots)
-        dec_codeword = dec_codeword.view(self.field)
-        return dec_codeword, n_errors
+        """Decode the codeword and return the corrected codeword and number of errors."""
+        pass
 
     @property
     @extend_docstring(

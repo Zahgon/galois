@@ -90,15 +90,7 @@ def is_conway(f: Poly, search: bool = False) -> bool:
             assert g.is_conway()
             galois.conway_poly(7, 3)
     """
-    verify_isinstance(search, bool)
-    if not is_prime(f.field.order):
-        raise ValueError(f"Conway polynomials are only defined over prime fields, not order {f.field.order}.")
-
-    p = f.field.order
-    m = f.degree
-    C_pm = conway_poly(p, m, search=search)
-
-    return f == C_pm
+    pass
 
 
 @method_of(Poly)
@@ -173,32 +165,7 @@ def is_conway_consistent(f: Poly, search: bool = False) -> bool:
             assert g.is_conway()
             galois.conway_poly(7, 3)
     """
-    verify_isinstance(search, bool)
-    if not is_prime(f.field.order):
-        raise ValueError(f"Conway polynomials are only defined over prime fields, not order {f.field.order}.")
-
-    field = f.field
-    p = field.order
-    m = f.degree
-    x = Poly.Identity(field)
-
-    if not is_primitive(f):
-        # A Conway polynomial must be primitive.
-        return False
-
-    # For f_m(x) to be a Conway polynomial, f_n(x^r) must divide f_m(x) for all n | m,
-    # where r = (p^m - 1) // (p^n - 1).
-    proper_divisors = divisors(m)[:-1]  # Exclude m itself
-
-    for n in proper_divisors:
-        f_n = conway_poly(p, n, search=search)
-        r = (p**m - 1) // (p**n - 1)
-        x_r = pow(x, r, f)
-        g = f_n(x_r) % f
-        if g != 0:
-            return False
-
-    return True
+    pass
 
 
 @export
@@ -280,23 +247,7 @@ def conway_poly(characteristic: int, degree: int, search: bool = False) -> Poly:
     Group:
         polys-primitive
     """
-    verify_isinstance(characteristic, int)
-    verify_isinstance(degree, int)
-    verify_isinstance(search, bool)
-
-    if not is_prime(characteristic):
-        raise ValueError(f"Argument 'characteristic' must be prime, not {characteristic}.")
-    if not degree >= 1:
-        raise ValueError(
-            f"Argument 'degree' must be at least 1, not {degree}. There are no primitive polynomials with degree 0."
-        )
-
-    try:
-        return _conway_poly_database(characteristic, degree)
-    except LookupError as e:
-        if search:
-            return _conway_poly_search(characteristic, degree)
-        raise e
+    pass
 
 
 def _conway_poly_database(characteristic: int, degree: int) -> Poly:
@@ -307,11 +258,7 @@ def _conway_poly_database(characteristic: int, degree: int) -> Poly:
     Raises:
         LookupError: If the Conway polynomial $C_{p,m}(x)$ is not found in Frank Luebeck's database.
     """
-    db = ConwayPolyDatabase()
-    degrees, coeffs = db.fetch(characteristic, degree)
-    field = _factory.FIELD_FACTORY(characteristic)
-    poly = Poly.Degrees(degrees, coeffs, field=field)
-    return poly
+    pass
 
 
 @functools.lru_cache()
@@ -319,14 +266,7 @@ def _conway_poly_search(characteristic: int, degree: int) -> Poly:
     r"""
     Manually searches for the Conway polynomial $C_{p,m}(x)$ over $\mathrm{GF}(p)$ with degree $m$.
     """
-    for poly in _conway_lexicographic_order(characteristic, degree):
-        if is_conway_consistent(poly):
-            return poly
-
-    raise RuntimeError(
-        f"The Conway polynomial C_{{{characteristic},{degree}}}(x) could not be found. "
-        "This should never happen. Please open a GitHub issue."
-    )
+    pass
 
 
 def _conway_lexicographic_order(
@@ -337,27 +277,4 @@ def _conway_lexicographic_order(
     Yields all monic polynomials of degree $m$ over $\mathrm{GF}(p)$ in the lexicographic order
     defined for Conway polynomials.
     """
-    field = _factory.FIELD_FACTORY(characteristic)
-
-    def recursive(
-        degrees: Sequence[int],
-        coeffs: Sequence[int],
-    ) -> Iterator[Poly]:
-        if len(degrees) == degree + 1:
-            # print(characteristic, degree, degrees, coeffs)
-            yield Poly.Degrees(degrees, coeffs, field=field)
-        else:
-            d = degrees[-1] - 1  # The new degree
-
-            if (degree - d) % 2 == 1:
-                all_coeffs = [0, *reversed(range(1, characteristic))]
-            else:
-                all_coeffs = [0, *range(1, characteristic)]
-            # print(d, all_coeffs)
-
-            for x in all_coeffs:
-                next_degrees = (*degrees, d)
-                next_coeffs = (*coeffs, x)
-                yield from recursive(next_degrees, next_coeffs)
-
-    yield from recursive([degree], [1])
+    pass

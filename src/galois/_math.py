@@ -19,54 +19,28 @@ def gcd(a: int, b: int) -> int:
     """
     This function is wrapped and documented in `_polymorphic.gcd()`.
     """
-    return math.gcd(a, b)
+    pass
 
 
 def egcd(a: int, b: int) -> tuple[int, int, int]:
     """
     This function is wrapped and documented in `_polymorphic.egcd()`.
     """
-    r2, r1 = a, b
-    s2, s1 = 1, 0
-    t2, t1 = 0, 1
-
-    while r1 != 0:
-        q = r2 // r1
-        r2, r1 = r1, r2 - q * r1
-        s2, s1 = s1, s2 - q * s1
-        t2, t1 = t1, t2 - q * t1
-
-    # Ensure the GCD is positive
-    if r2 < 0:
-        r2 *= -1
-        s2 *= -1
-        t2 *= -1
-
-    return r2, s2, t2
+    pass
 
 
 def lcm(*args: int) -> int:
     """
     This function is wrapped and documented in `_polymorphic.lcm()`.
     """
-    lcm_ = 1
-    for arg in args:
-        lcm_ = (lcm_ * arg) // gcd(lcm_, arg)
-
-    # Ensure the LCM is positive
-    lcm_ = abs(lcm_)
-
-    return lcm_
+    pass
 
 
 def prod(*args: int) -> int:
     """
     This function is wrapped and documented in `_polymorphic.prod()`.
     """
-    prod_ = 1
-    for arg in args:
-        prod_ *= arg
-    return prod_
+    pass
 
 
 ###############################################################################
@@ -147,28 +121,7 @@ def iroot(n: int, k: int) -> int:
     Group:
         number-theory-integer
     """
-    verify_isinstance(n, int)
-    verify_isinstance(k, int)
-    if not n >= 0:
-        raise ValueError(f"Argument 'n' must be non-negative, not {n}.")
-    if not k >= 1:
-        raise ValueError(f"Argument 'k' must be at least 1, not {k}.")
-
-    if n == 0:
-        return 0
-    if k == 1:
-        return n
-
-    # https://stackoverflow.com/a/39191163/11694321
-    u = n
-    x = n + 1
-    k1 = k - 1
-
-    while u < x:
-        x = u
-        u = (k1 * u + n // u**k1) // k
-
-    return x
+    pass
 
 
 @export
@@ -196,30 +149,4 @@ def ilog(n: int, b: int) -> int:
     Group:
         number-theory-integer
     """
-    verify_isinstance(n, int)
-    verify_isinstance(b, int)
-    if not n > 0:
-        raise ValueError(f"Argument 'n' must be positive, not {n}.")
-    if not b >= 2:
-        raise ValueError(f"Argument 'b' must be at least 2, not {b}.")
-
-    # https://stackoverflow.com/a/39191163/11694321
-    low, b_low, high, b_high = 0, 1, 1, b
-
-    while b_high < n:
-        low, b_low, high, b_high = high, b_high, high * 2, b_high**2
-
-    while high - low > 1:
-        mid = (low + high) // 2
-        b_mid = b_low * b ** (mid - low)
-        if n < b_mid:
-            high, b_high = mid, b_mid
-        elif b_mid < n:
-            low, b_low = mid, b_mid
-        else:
-            return mid
-
-    if b_high == n:
-        return high
-
-    return low
+    pass

@@ -109,29 +109,7 @@ def is_primitive_element(element: PolyLike, irreducible_poly: Poly) -> bool:
     Group:
         galois-fields-primitive-elements
     """
-    verify_isinstance(irreducible_poly, Poly)
-    field = irreducible_poly.field
-
-    # Convert element into a Poly object over the same base field as irreducible_poly
-    element = Poly.Like(element, field=field)
-
-    if element.field is not irreducible_poly.field:
-        raise ValueError(
-            f"Arguments 'element' and 'irreducible_poly' must be over the same field, "
-            f"not {element.field.name} and {irreducible_poly.field.name}."
-        )
-    if not element.degree < irreducible_poly.degree:
-        raise ValueError(
-            f"Argument 'element' must have degree less than 'irreducible_poly', "
-            f"not degrees {element.degree} and {irreducible_poly.degree}."
-        )
-    if not irreducible_poly.is_irreducible():
-        raise ValueError(
-            f"Argument 'irreducible_poly' must be irreducible, "
-            f"{irreducible_poly} is reducible over {irreducible_poly.field.name}."
-        )
-
-    return _is_primitive_element(element, irreducible_poly)
+    pass
 
 
 def _is_primitive_element(element: Poly, irreducible_poly: Poly) -> bool:
@@ -146,24 +124,7 @@ def _is_primitive_element(element: Poly, irreducible_poly: Poly) -> bool:
     The return value is `True` if the residue class of $g(x)$ modulo $f(x)$ is primitive in
     $\mathrm{GF}(q^m)$.
     """
-    q = irreducible_poly.field.order
-    m = irreducible_poly.degree
-
-    order = q**m - 1  # Multiplicative group order of GF(q^m)^×
-    primes, _ = factors(order)
-
-    # Test g^(order / p) != 1 for all distinct prime divisors p of order
-    for k in sorted({order // p for p in primes}):
-        g = pow(element, k, irreducible_poly)
-        if g == 1:
-            return False
-
-    # Sanity check: g^order should be 1 in the multiplicative group
-    g = pow(element, order, irreducible_poly)
-    if g != 1:
-        return False
-
-    return True
+    pass
 
 
 @export
@@ -260,45 +221,7 @@ def primitive_element(irreducible_poly: Poly, method: Literal["min", "max", "ran
     Group:
         galois-fields-primitive-elements
     """
-    verify_isinstance(irreducible_poly, Poly)
-    if not irreducible_poly.degree > 1:
-        raise ValueError(f"Argument 'irreducible_poly' must have degree greater than 1, not {irreducible_poly.degree}.")
-    if not irreducible_poly.is_irreducible():
-        raise ValueError(
-            f"Argument 'irreducible_poly' must be irreducible, "
-            f"{irreducible_poly} is reducible over {irreducible_poly.field.name}."
-        )
-    if method not in ["min", "max", "random"]:
-        raise ValueError(f"Argument 'method' must be in ['min', 'max', 'random'], not {method!r}.")
-
-    field = irreducible_poly.field
-    q = field.order
-    m = irreducible_poly.degree
-
-    # Skip constants 0..q-1 (elements of GF(q)), which cannot be primitive in GF(q^m) for m > 1
-    start = q
-    stop = q**m
-
-    if method == "min":
-        for integer in range(start, stop):
-            element = Poly.Int(integer, field=field)
-            if _is_primitive_element(element, irreducible_poly):
-                return element
-    elif method == "max":
-        for integer in range(stop - 1, start - 1, -1):
-            element = Poly.Int(integer, field=field)
-            if _is_primitive_element(element, irreducible_poly):
-                return element
-    else:
-        while True:
-            integer = random.randint(start, stop - 1)
-            element = Poly.Int(integer, field=field)
-            if _is_primitive_element(element, irreducible_poly):
-                return element
-
-    raise RuntimeError(
-        f"No primitive elements in GF({q}^{m}) were found with irreducible polynomial {irreducible_poly}."
-    )
+    pass
 
 
 @export
@@ -389,22 +312,4 @@ def primitive_elements(irreducible_poly: Poly) -> list[Poly]:
     Group:
         galois-fields-primitive-elements
     """
-    # NOTE: Type checking is not required, because it will be done by primitive_element()
-
-    # Find one primitive representative polynomial first
-    element = primitive_element(irreducible_poly)
-
-    q = irreducible_poly.field.order
-    m = irreducible_poly.degree
-    N = q**m - 1
-
-    elements: list[Poly] = []
-    # All primitive elements are g^k where gcd(k, N) = 1 (the totatives of N)
-    for totative in totatives(N):
-        h = pow(element, totative, irreducible_poly)
-        elements.append(h)
-
-    # Sort elements lexicographically by their integer representation
-    elements = sorted(elements, key=int)
-
-    return elements
+    pass

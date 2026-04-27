@@ -36,14 +36,14 @@ class Function:
         """
         Invokes the function, either JIT-compiled or pure-Python, performing necessary input/output conversion.
         """
-        raise NotImplementedError
+        pass
 
     def set_globals(self):
         """
         Sets the global variables used in `implementation()` before JIT compiling it or before invoking it in
         pure Python.
         """
-        return
+        pass
 
     _SIGNATURE: numba.types.FunctionType
     """The function's Numba signature."""
@@ -75,32 +75,21 @@ class Function:
         """
         Returns a JIT-compiled or pure-Python function based on field size.
         """
-        if self.field.ufunc_mode == "python-calculate":
-            return self.python
-        return self.jit
+        pass
 
     @property
     def jit(self) -> numba.types.FunctionType:
         """
         Returns a JIT-compiled function implemented over the given field.
         """
-        assert self.field.ufunc_mode in ["jit-lookup", "jit-calculate"]
-
-        self._CACHE.setdefault(self.key_1, {})
-        if self.key_2 not in self._CACHE[self.key_1]:
-            self.set_globals()  # Set the globals once before JIT compiling the function
-            func = numba.jit(self._SIGNATURE.signature, parallel=self._PARALLEL, nopython=True)(self.implementation)
-            self._CACHE[self.key_1][self.key_2] = func
-
-        return self._CACHE[self.key_1][self.key_2]
+        pass
 
     @property
     def python(self) -> Callable:
         """
         Returns the pure-Python function implemented over the given field.
         """
-        self.set_globals()  # Set the globals each time before invoking the pure-Python function
-        return self.implementation
+        pass
 
 
 ###############################################################################
@@ -114,57 +103,19 @@ class convolve_jit(Function):
     """
 
     def __call__(self, a: Array, b: Array, mode="full") -> Array:
-        verify_isinstance(a, self.field)
-        verify_isinstance(b, self.field)
-        if not mode == "full":
-            raise ValueError(f"Operation 'convolve' currently only supports mode of 'full', not {mode!r}.")
-        dtype = a.dtype
-
-        if self.field.ufunc_mode != "python-calculate":
-            c = self.jit(a.astype(np.int64), b.astype(np.int64))
-            c = c.astype(dtype)
-        else:
-            c = self.python(a.view(np.ndarray), b.view(np.ndarray))
-        c = self.field._view(c)
-
-        return c
+        """Stub for __call__."""
+        pass
 
     def set_globals(self):
-        global IS_PRIME_FIELD, CHARACTERISTIC, ADD, MULTIPLY
-        IS_PRIME_FIELD = self.field._is_prime_field
-        CHARACTERISTIC = self.field.characteristic
-        ADD = self.field._add.ufunc_call_only
-        MULTIPLY = self.field._multiply.ufunc_call_only
+        """Stub for set_globals."""
+        pass
 
     _SIGNATURE = numba.types.FunctionType(int64[:](int64[:], int64[:]))
 
     @staticmethod
     def implementation(a, b):
-        dtype = a.dtype
-
-        if IS_PRIME_FIELD:
-            try:
-                max_sum = np.iinfo(dtype).max // (CHARACTERISTIC - 1) ** 2
-                n_sum = min(a.size, b.size)
-                overflow = n_sum > max_sum
-            except:  # noqa: E722
-                # This happens when the dtype is np.object_
-                overflow = False
-
-            if not overflow:
-                # Compute the result using native NumPy LAPACK/BLAS implementation since it is guaranteed to not
-                # overflow. Then reduce the result mod p.
-                c = np.convolve(a, b)
-                c = c % CHARACTERISTIC
-                return c
-
-        # Fall-back brute force method
-        c = np.zeros(a.size + b.size - 1, dtype=dtype)
-        for i in range(a.size):
-            for j in range(b.size - 1, -1, -1):
-                c[i + j] = ADD(c[i + j], MULTIPLY(a[i], b[j]))
-
-        return c
+        """Stub for implementation."""
+        pass
 
 
 class fft_jit(Function):
@@ -175,41 +126,8 @@ class fft_jit(Function):
     _direction = "forward"
 
     def __call__(self, x: Array, n=None, axis=-1, norm=None) -> Array:
-        verify_isinstance(x, self.field)
-        norm = "backward" if norm is None else norm
-        if not axis == -1:
-            raise ValueError("The FFT is only implemented on 1-D arrays.")
-        if not norm in ["forward", "backward"]:
-            raise ValueError("DFT normalization can only be applied to the forward or backward transform, not 'ortho'.")
-        dtype = x.dtype
-
-        if n is None:
-            n = x.size
-        elif n < x.size:
-            x = x[:n]
-        elif n > x.size:
-            x = np.append(x, self.field.Zeros(n - x.size))
-
-        omega = self.field.primitive_root_of_unity(n)
-        if self._direction == "backward":
-            omega = omega**-1
-        factors = self._prime_factors(n)
-
-        if self.field.ufunc_mode != "python-calculate":
-            # NOTE: Performing x.astype() returns a copy of x, which is necessary to prevent modifying the original
-            #       array in-place
-            y = self.jit(x.astype(np.int64), np.int64(omega), factors)
-            y = y.astype(dtype)
-        else:
-            # NOTE: Make a copy of x to prevent modifying the original array in-place
-            y = self.python(x.view(np.ndarray).copy(), int(omega), factors)
-        y = self.field._view(y)
-
-        # Scale the transform such that x = IDFT(DFT(x))
-        if self._direction == norm:
-            y /= self.field(n % self.field.characteristic)
-
-        return y
+        """Stub for __call__."""
+        pass
 
     @staticmethod
     @functools.lru_cache(None)
@@ -217,23 +135,11 @@ class fft_jit(Function):
         """
         Returns the prime factors of `length` with multiplicity, e.g. 176 → (2,2,2,2,11).
         """
-        if length == 1:
-            factors = []
-        else:
-            primes, multiplicities = _factors(length)
-            factors = [prime for prime, multiplicity in zip(primes, multiplicities) for _ in range(multiplicity)]
-
-        factors = np.array(factors, dtype=np.int64)
-        factors.flags.writeable = False  # Make it read-only for safety, since we will reuse it
-
-        return factors
+        pass
 
     def set_globals(self):
-        global ADD, SUBTRACT, MULTIPLY, POWER
-        ADD = self.field._add.ufunc_call_only
-        SUBTRACT = self.field._subtract.ufunc_call_only
-        MULTIPLY = self.field._multiply.ufunc_call_only
-        POWER = self.field._power.ufunc_call_only
+        """Stub for set_globals."""
+        pass
 
     _SIGNATURE = numba.types.FunctionType(
         int64[:](
@@ -301,87 +207,7 @@ class fft_jit(Function):
         References:
             - https://dsp-book.narod.ru/FFTBB/0270_PDF_C15.pdf
         """
-        # Ensure a contiguous working buffer (important for predictable reshapes)
-        in_buffer = np.ascontiguousarray(array)
-
-        # Allocate the second buffer once and ping-pong between them each stage
-        out_buffer = np.empty_like(in_buffer)
-
-        N = in_buffer.size  # Total FFT size
-        m = 1  # Size of FFT blocks already computed
-
-        # The reference implementation consumes radices from the end.
-        # (This affects how reshapes map onto the conceptual decomposition.)
-        for index in range(len(factors)):
-            # NOTE: Micro-optimization to iterate through factors in reversed order, ~index evaluates to -index-1.
-            r = factors[~index]  # Current radix
-
-            q = N // (m * r)  # Number of blocks at this stage
-            # Invariant: N == m * r * q
-
-            twiddle = 1  # Running twiddle factor (advances by omega^q each step)
-            twiddle_step = POWER(omega, q)  # Twiddle step for this stage: omega^(N / (m*r)) = omega^q
-
-            # Reinterpret the flat buffers as 3-D views to express the Cooley–Tukey grouping:
-            #   in_view[k, qi, b]  : k-th subblock (0..r-1), within block qi, at offset b
-            #   out_view[qi, f, b] : output f (0..r-1) for block qi, at offset b
-            in_view = in_buffer.reshape((r, q, m))
-            out_view = out_buffer.reshape((q, r, m))
-
-            # Note:
-            #     Although the twiddle factor mathematically depends only on the output index f
-            #     (twiddle = omega^(q * f)), we advance it imperatively here to match the memory
-            #     layout induced by the reshape (r, q, m) → (q, r, m). The update schedule is
-            #     therefore tied to the loop nesting and must not be reordered.
-
-            if r == 2:
-                # Radix-2 "butterfly":
-                #   y0 = x0 + twiddle * x1
-                #   y1 = x0 - twiddle * x1
-                #
-                # The running `twiddle` is advanced by `twiddle_step` in the same nested-loop
-                # order as the reference implementation.
-                for b in range(m):
-                    for qi in range(q):
-                        x0 = in_view[0, qi, b]
-                        x1 = MULTIPLY(in_view[1, qi, b], twiddle)
-
-                        out_view[qi, 0, b] = ADD(x0, x1)
-                        out_view[qi, 1, b] = SUBTRACT(x0, x1)
-
-                    twiddle = MULTIPLY(twiddle, twiddle_step)
-
-            else:
-                # General radix-r combine.
-                #
-                # For each (qi, b) we have r inputs: x_0..x_{r-1}.
-                # Each output is computed by evaluating a polynomial in twiddle:
-                #
-                #   y = x_0 + x_1 * twiddle + x_2 * twiddle^2 + ... + x_{r-1} * twiddle^{r-1}
-                #
-                # This is evaluated using Horner's rule (minimizes multiplications):
-                #
-                #   (((x_{r-1} * twiddle + x_{r-2}) * twiddle + x_{r-3}) ... * twiddle + x_0)
-                #
-                # The running `twiddle` is advanced by `twiddle_step` in the same nested-loop
-                # order as the reference implementation.
-                for f in range(r):
-                    for b in range(m):
-                        for qi in range(q):
-                            acc = in_view[r - 1, qi, b]
-                            for k in range(r - 2, -1, -1):
-                                acc = ADD(MULTIPLY(acc, twiddle), in_view[k, qi, b])
-                            out_view[qi, f, b] = acc
-
-                        twiddle = MULTIPLY(twiddle, twiddle_step)
-
-            # After this stage, block FFT size grows by `r`
-            m *= r
-
-            # Ping-pong buffers: next stage reads from what we just wrote
-            in_buffer, out_buffer = out_buffer, in_buffer
-
-        return in_buffer.ravel()
+        pass
 
 
 class ifft_jit(fft_jit):

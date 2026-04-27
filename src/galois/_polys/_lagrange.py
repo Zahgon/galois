@@ -65,13 +65,7 @@ def lagrange_poly(x: Array, y: Array) -> Poly:
     Group:
         polys-interpolating
     """
-    verify_isinstance(x, Array)
-    verify_isinstance(y, Array)
-
-    coeffs = lagrange_poly_jit(type(x))(x, y)
-    poly = Poly(coeffs)
-
-    return poly
+    pass
 
 
 class lagrange_poly_jit(Function):

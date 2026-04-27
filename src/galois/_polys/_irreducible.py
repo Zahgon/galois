@@ -79,49 +79,7 @@ def is_irreducible(f: Poly) -> bool:
 
             assert not f.is_irreducible()
     """
-
-    if f.degree == 0:
-        # Over fields, f(x) = 0 is the zero element of GF(p^m)[x] and f(x) = c are the units of GF(p^m)[x].
-        # Both the zero element and the units are not irreducible over the polynomial ring GF(p^m)[x].
-        return False
-
-    if f.degree == 1:
-        # f(x) = x + a (even a = 0) in any Galois field is irreducible
-        return True
-
-    if f.coeffs[-1] == 0:
-        # g(x) = x can be factored, therefore it is not irreducible
-        return False
-
-    if f.field.order == 2 and f.nonzero_coeffs.size % 2 == 0:
-        # Polynomials over GF(2) with degree at least 2 and an even number of terms satisfy f(1) = 0, hence
-        # g(x) = x + 1 can be factored. Section 4.5.2 from https://cacr.uwaterloo.ca/hac/about/chap4.pdf.
-        return False
-
-    field = f.field
-    q = field.order
-    m = f.degree
-    x = Poly([1, 0], field=field)
-
-    primes, _ = factors(m)
-    h0 = Poly([1, 0], field=field)
-    n0 = 0
-    for ni in sorted([m // pi for pi in primes]):
-        # The GCD of f(x) and (x^(q^(m/pi)) - x) must be 1 for f(x) to be irreducible, where pi are the
-        # prime factors of m.
-        hi = pow(h0, q ** (ni - n0), f)
-        g = gcd(f, hi - x)
-        if g != 1:
-            return False
-        h0, n0 = hi, ni
-
-    # f(x) must divide (x^(q^m) - x) to be irreducible
-    h = pow(h0, q ** (m - n0), f)
-    g = (h - x) % f
-    if g != 0:
-        return False
-
-    return True
+    pass
 
 
 @export
@@ -209,51 +167,7 @@ def irreducible_poly(
     Group:
         polys-irreducible
     """
-    verify_isinstance(order, int)
-    verify_isinstance(degree, int)
-    verify_isinstance(terms, (int, str), optional=True)
-
-    if not is_prime_power(order):
-        raise ValueError(f"Argument 'order' must be a prime power, not {order}.")
-    if not degree >= 1:
-        raise ValueError(
-            f"Argument 'degree' must be at least 1, not {degree}. There are no irreducible polynomials with degree 0."
-        )
-    if isinstance(terms, int) and not 1 <= terms <= degree + 1:
-        raise ValueError(f"Argument 'terms' must be at least 1 and at most {degree + 1}, not {terms}.")
-    if isinstance(terms, str) and not terms in ["min"]:
-        raise ValueError(f"Argument 'terms' must be 'min', not {terms!r}.")
-    if not method in ["min", "max", "random"]:
-        raise ValueError(f"Argument 'method' must be in ['min', 'max', 'random'], not {method!r}.")
-
-    if terms == "min" and method == "min":
-        try:
-            db = IrreduciblePolyDatabase()
-            degrees, coeffs = db.fetch(order, degree)
-            field = _factory.FIELD_FACTORY(order)
-            poly = Poly.Degrees(degrees, coeffs, field=field)
-            return poly
-        except LookupError:
-            pass
-
-    try:
-        if method == "min":
-            return next(irreducible_polys(order, degree, terms))
-        if method == "max":
-            return next(irreducible_polys(order, degree, terms, reverse=True))
-
-        # Random search
-        if terms is None:
-            return next(_random_search(order, degree, "is_irreducible"))
-        if terms == "min":
-            terms = _minimum_terms(order, degree, "is_irreducible")
-        return next(_random_search_fixed_terms(order, degree, terms, "is_irreducible"))
-
-    except StopIteration as e:
-        terms_str = "any" if terms is None else str(terms)
-        raise RuntimeError(
-            f"No monic irreducible polynomial of degree {degree} over GF({order}) with {terms_str} terms exists."
-        ) from e
+    pass
 
 
 @export
@@ -333,41 +247,4 @@ def irreducible_polys(
     Group:
         polys-irreducible
     """
-    verify_isinstance(order, int)
-    verify_isinstance(degree, int)
-    verify_isinstance(terms, (int, str), optional=True)
-    verify_isinstance(reverse, bool)
-
-    if not is_prime_power(order):
-        raise ValueError(f"Argument 'order' must be a prime power, not {order}.")
-    if not degree >= 0:
-        raise ValueError(f"Argument 'degree' must be at least 0, not {degree}.")
-    if isinstance(terms, int) and not 1 <= terms <= degree + 1:
-        raise ValueError(f"Argument 'terms' must be at least 1 and at most {degree + 1}, not {terms}.")
-    if isinstance(terms, str) and not terms in ["min"]:
-        raise ValueError(f"Argument 'terms' must be 'min', not {terms!r}.")
-
-    if terms == "min":
-        # Find the minimum number of terms required to produce an irreducible polynomial of degree m over GF(q).
-        # Then yield all monic irreducible polynomials of with that number of terms.
-        min_terms = _minimum_terms(order, degree, "is_irreducible")
-        yield from _deterministic_search_fixed_terms(order, degree, min_terms, "is_irreducible", reverse)
-    elif isinstance(terms, int):
-        # Iterate over and test monic polynomials of degree m over GF(q) with `terms` non-zero terms.
-        yield from _deterministic_search_fixed_terms(order, degree, terms, "is_irreducible", reverse)
-    else:
-        # Iterate over and test all monic polynomials of degree m over GF(q).
-        start = order**degree
-        stop = 2 * order**degree
-        step = 1
-        if reverse:
-            start, stop, step = stop - 1, start - 1, -1
-        field = _factory.FIELD_FACTORY(order)
-
-        while True:
-            poly = _deterministic_search(field, start, stop, step, "is_irreducible")
-            if poly is not None:
-                start = int(poly) + step
-                yield poly
-            else:
-                break
+    pass

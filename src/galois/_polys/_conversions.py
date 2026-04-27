@@ -15,10 +15,7 @@ def integer_to_degree(integer: int, order: int) -> int:
     """
     Converts the integer representation of the polynomial to its degree.
     """
-    if order == 2:
-        return max(integer.bit_length() - 1, 0)
-
-    return ilog(integer, order)
+    pass
 
 
 def integer_to_poly(integer: int, order: int, degree: int | None = None) -> list[int]:
@@ -52,28 +49,14 @@ def poly_to_integer(coeffs: list[int], order: int) -> int:
     """
     Converts the polynomial coefficients (descending order) to its integer representation.
     """
-    integer = 0
-    coeffs = coeffs[::-1]  # Coefficients in ascending order
-    factor = 1
-
-    for coeff in coeffs:
-        integer += int(coeff) * factor
-        factor *= order
-
-    return integer
+    pass
 
 
 def sparse_poly_to_integer(degrees: list[int], coeffs: list[int], order: int) -> int:
     """
     Converts the polynomial non-zero degrees and coefficients to its integer representation.
     """
-    assert len(degrees) == len(coeffs)
-
-    integer = 0
-    for d, c in zip(degrees, coeffs):
-        integer += int(c) * order ** int(d)
-
-    return integer
+    pass
 
 
 def poly_to_str(coeffs: list[int], poly_var: str = "x") -> str:
@@ -144,65 +127,11 @@ def str_to_sparse_poly(poly_str: str) -> tuple[list[int], list[int]]:
     """
     Converts the polynomial string into its non-zero degrees and coefficients.
     """
-    s = poly_str.replace(" ", "")  # Strip whitespace for easier processing
-    s = s.replace("-", "+-")  # Convert `x^2 - x` into `x^2 + -x`
-    s = s.replace("++", "+")  # Places that were `x^2 + - x` before the previous line are now `x^2 + + -x`, fix them
-    s = s[1:] if s[0] == "+" else s  # Remove added `+` to a negative leading coefficient
-
-    # Find the unique polynomial indeterminate
-    indeterminates = set(c for c in s if c.isalpha())
-    if len(indeterminates) == 0:
-        var = "x"
-    elif len(indeterminates) == 1:
-        var = list(indeterminates)[0]
-    else:
-        raise ValueError(f"Found multiple polynomial indeterminates {vars} in string {poly_str!r}.")
-
-    degrees = []
-    coeffs = []
-    for element in s.split("+"):
-        if var not in element:
-            degree = 0
-            coeff = element
-        elif "^" not in element and "**" not in element:
-            degree = 1
-            coeff = element.split(var, 1)[0]
-        elif "^" in element:
-            coeff, degree = element.split(var + "^", 1)
-        elif "**" in element:
-            coeff, degree = element.split(var + "**", 1)
-        else:
-            raise ValueError(f"Could not parse polynomial degree in {element}.")
-
-        # If the degree was negative `3*x^-2`, it was converted to `3*x^+-2` previously. When split
-        # by "+" it will leave the degree empty.
-        if degree == "":
-            raise ValueError(f"Cannot parse polynomials with negative exponents, {poly_str!r}.")
-        degree = int(degree)
-
-        coeff = coeff.replace("*", "")  # Remove multiplication sign for elements like `3*x^2`
-        if coeff == "-":
-            coeff = -1
-        elif coeff != "":
-            coeff = int(coeff)
-        else:
-            coeff = 1
-
-        degrees.append(degree)
-        coeffs.append(coeff)
-
-    return degrees, coeffs
+    pass
 
 
 def str_to_integer(poly_str: str, prime_subfield) -> int:
     """
     Converts the polynomial string to its integer representation.
     """
-    degrees, coeffs = str_to_sparse_poly(poly_str)
-
-    integer = 0
-    for degree, coeff in zip(degrees, coeffs):
-        coeff = coeff if coeff >= 0 else int(-prime_subfield(abs(coeff)))
-        integer += coeff * prime_subfield.order**degree
-
-    return integer
+    pass

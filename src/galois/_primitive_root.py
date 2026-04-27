@@ -89,31 +89,14 @@ def is_primitive_root(g: int, n: int) -> bool:
     Group:
         number-theory-primitive-roots
     """
-    verify_isinstance(g, int)
-    verify_isinstance(n, int)
-    if not n > 0:
-        raise ValueError(f"Argument 'n' must be a positive integer, not {n}.")
-    if not 0 < g < n:
-        raise ValueError(f"Argument 'g' must be a positive integer less than 'n', not {g}.")
-
-    return _is_primitive_root(g, n)
+    pass
 
 
 def _is_primitive_root(g: int, n: int) -> bool:
     """
     A private version of :func:`is_primitive_root` without type checking for internal use.
     """
-    if n == 2:
-        # (Z/2Z)^× = {1} has a single element of order 1, so 1 is the unique primitive root modulo 2.
-        return g == 1
-
-    phi = euler_phi(n)  # |(Z/nZ)^×|
-    primes, _ = factors(phi)
-
-    # g is primitive iff:
-    #   - g^φ(n) ≡ 1 (mod n), and
-    #   - for every prime q | φ(n), g^{φ(n)/q} ≢ 1 (mod n).
-    return pow(g, phi, n) == 1 and all(pow(g, phi // q, n) != 1 for q in primes)
+    pass
 
 
 @export
@@ -286,33 +269,7 @@ def primitive_root(
     Group:
         number-theory-primitive-roots
     """
-    verify_isinstance(n, int)
-    verify_isinstance(start, int)
-    verify_isinstance(stop, int, optional=True)
-
-    if n in [1, 2]:
-        # By convention:
-        #   n = 1 -> return 0 (the unique residue class),
-        #   n = 2 -> return 1 (the unique primitive root modulo 2).
-        return n - 1
-
-    stop = n if stop is None else stop
-    if not 1 <= start < stop <= n:
-        raise ValueError(f"Arguments must satisfy 1 <= start < stop <= n, not 1 <= {start} < {stop} <= {n}.")
-    if method not in ["min", "max", "random"]:
-        raise ValueError(f"Argument 'method' must be in ['min', 'max', 'random'], not {method!r}.")
-
-    try:
-        if method == "min":
-            root = next(primitive_roots(n, start, stop=stop))
-        elif method == "max":
-            root = next(primitive_roots(n, start, stop=stop, reverse=True))
-        else:
-            root = _primitive_root_random_search(n, start, stop)
-        return root
-    except StopIteration as e:
-        # No primitive root found in the requested range (either non-cyclic group or range too small).
-        raise RuntimeError(f"No primitive roots modulo {n} exist in the range [{start}, {stop}).") from e
+    pass
 
 
 @export
@@ -413,69 +370,18 @@ def primitive_roots(
     Group:
         number-theory-primitive-roots
     """
-    verify_isinstance(n, int)
-    verify_isinstance(start, int)
-    verify_isinstance(stop, int, optional=True)
-    verify_isinstance(reverse, bool)
-
-    if n in [1, 2]:
-        # n = 1 -> yield 0; n = 2 -> yield 1.
-        yield n - 1
-        return
-
-    stop = n if stop is None else stop
-    if not 1 <= start < stop <= n:
-        raise ValueError(f"Arguments must satisfy 1 <= start < stop <= n, not 1 <= {start} < {stop} <= {n}.")
-
-    # If the multiplicative group (Z/nZ)^× is not cyclic, then it has no multiplicative generators.
-    if not is_cyclic(n):
-        return
-
-    phi = euler_phi(n)  # |(Z/nZ)^×|
-    if phi == n - 1 or n % 2 == 1:
-        # For prime n or odd n, test all integers in [start, stop).
-        step = 1
-    else:
-        # For even n, only odd integers can be units modulo n, so skip even candidates.
-        if start % 2 == 0:
-            start += 1
-        step = 2
-
-    if reverse:
-        start, stop, step = stop - 1, start - 1, -1
-
-    while True:
-        root = _primitive_root_deterministic_search(n, start, stop, step)
-        if root is not None:
-            start = root + step
-            yield root
-        else:
-            break
+    pass
 
 
 def _primitive_root_deterministic_search(n: int, start: int, stop: int, step: int) -> int | None:
     """
     Searches deterministically for a primitive root in the range [start, stop) with the given step.
     """
-    for candidate in range(start, stop, step):
-        if _is_primitive_root(candidate, n):
-            return candidate
-
-    return None
+    pass
 
 
 def _primitive_root_random_search(n: int, start: int, stop: int) -> int:
     """
     Searches for a primitive root by random sampling in the range [start, stop).
     """
-    i = 0
-    while True:
-        root = random.randint(start, stop - 1)
-        if _is_primitive_root(root, n):
-            return root
-
-        i += 1
-        if i > 2 * (stop - start):
-            # A primitive root should have been found with high probability after 2 * (stop - start) trials
-            # if one exists in the range; fall back to the caller via StopIteration.
-            raise StopIteration
+    pass

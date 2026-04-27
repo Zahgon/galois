@@ -357,23 +357,7 @@ class FieldArray(Array, metaclass=FieldArrayMeta):
                 @suppress
                 np.set_printoptions(linewidth=75)
         """
-        verify_isinstance(element, (int, np.integer, cls))
-        verify_isinstance(rows, int)
-        verify_isinstance(cols, int)
-        if not rows > 0:
-            raise ValueError(f"Argument 'rows' must be non-negative, not {rows}.")
-        if not cols > 0:
-            raise ValueError(f"Argument 'cols' must be non-negative, not {cols}.")
-
-        dtype = cls._get_dtype(dtype)
-        element = cls(element, dtype=dtype)
-        if not element.ndim == 0:
-            raise ValueError(f"Argument 'element' must be element scalar, not {element.ndim}-D.")
-
-        v = element ** np.arange(0, rows)
-        V = np.power.outer(v, np.arange(0, cols))
-
-        return V
+        pass
 
     ###############################################################################
     # Conversions
@@ -412,27 +396,7 @@ class FieldArray(Array, metaclass=FieldArrayMeta):
         Order:
             21
         """
-        dtype = cls._get_dtype(dtype)
-        order = cls.prime_subfield.order
-        degree = cls.degree
-
-        x = cls.prime_subfield(array)  # Convert element-like objects into the prime subfield
-        x = x.view(np.ndarray)  # Convert into an integer array
-        if not x.shape[-1] == degree:
-            raise ValueError(
-                f"Argument 'array' must have last dimension equal to the field extension dimension {cls.degree}, "
-                f"not {x.shape[-1]}."
-            )
-
-        degrees = np.arange(degree - 1, -1, -1, dtype=dtype)
-        y = np.sum(x * order**degrees, axis=-1, dtype=dtype)
-
-        if np.isscalar(y):
-            y = cls(y, dtype=dtype)
-        else:
-            y = cls._view(y)
-
-        return y
+        pass
 
     def vector(self, dtype: DTypeLike | None = None) -> FieldArray:
         r"""
@@ -466,29 +430,7 @@ class FieldArray(Array, metaclass=FieldArrayMeta):
         Order:
             21
         """
-        field = type(self)
-        subfield = field.prime_subfield
-        order = subfield.order
-        degree = field.degree
-
-        x = np.array(self)  # The original array as an integer array
-        shape = list(self.shape) + [degree]  # The new shape
-        y = subfield.Zeros(shape, dtype=dtype)
-
-        if self.dtype == np.object_:
-            # Need a separate "if" statement because divmod() does not work with dtype=object input and
-            # integer dtype outputs
-            for i in range(degree - 1, -1, -1):
-                q, r = x // order, x % order
-                y[..., i] = r
-                x = q
-        else:
-            for i in range(degree - 1, -1, -1):
-                q, r = divmod(x, order)
-                y[..., i] = r
-                x = q
-
-        return y
+        pass
 
     # @classmethod
     # def polynomial_basis(
@@ -904,7 +846,7 @@ class FieldArray(Array, metaclass=FieldArrayMeta):
         Order:
             31
         """
-        return super().repr(element_repr)
+        pass
 
     @classmethod
     def repr_table(
@@ -966,68 +908,7 @@ class FieldArray(Array, metaclass=FieldArrayMeta):
         Order:
             30
         """
-        verify_literal(sort, ["power", "poly", "vector", "int"])
-
-        if element is None:
-            element = cls.primitive_element
-
-        element = cls(element)
-        degrees = np.arange(0, cls.order - 1)
-        x = element**degrees
-        if sort != "power":
-            idxs = np.argsort(x)
-            degrees, x = degrees[idxs], x[idxs]
-        x = np.concatenate((np.atleast_1d(cls(0)), x))  # Add 0 = alpha**-Inf
-        prim = poly_to_str(integer_to_poly(int(element), cls.characteristic))
-
-        def print_power(power):
-            if power is None:
-                return "0"
-            if len(prim) > 1:
-                return f"({prim})^{power}"
-            return f"{prim}^{power}"
-
-        def print_poly(x):
-            return poly_to_str(integer_to_poly(int(x), cls.characteristic))
-
-        def print_vec(x):
-            return str(integer_to_poly(int(x), cls.characteristic, degree=cls.degree - 1))
-
-        def print_int(x):
-            return str(int(x))
-
-        # Determine column widths
-        N_power = max([len(print_power(max(degrees))), len("Power")]) + 2
-        N_poly = max([len(print_poly(e)) for e in x] + [len("Polynomial")]) + 2
-        N_vec = max([len(print_vec(e)) for e in x] + [len("Vector")]) + 2
-        N_int = max([len(print_int(e)) for e in x] + [len("Integer")]) + 2
-
-        string = (
-            "Power".center(N_power)
-            + " "
-            + "Polynomial".center(N_poly)
-            + " "
-            + "Vector".center(N_vec)
-            + " "
-            + "Integer".center(N_int)
-        )
-        string += "\n" + "-" * N_power + " " + "-" * N_poly + " " + "-" * N_vec + " " + "-" * N_int
-
-        for i in range(x.size):
-            d = None if i == 0 else degrees[i - 1]
-            string += (
-                "\n"
-                + print_power(d).center(N_power)
-                + " "
-                + poly_to_str(integer_to_poly(int(x[i]), cls.characteristic)).center(N_poly)
-                + " "
-                + str(integer_to_poly(int(x[i]), cls.characteristic, degree=cls.degree - 1)).center(N_vec)
-                + " "
-                + cls._print_int(x[i]).center(N_int)
-                + " "
-            )
-
-        return string
+        pass
 
     @classmethod
     def arithmetic_table(
@@ -1073,55 +954,7 @@ class FieldArray(Array, metaclass=FieldArrayMeta):
         Order:
             30
         """
-        if not operation in ["+", "-", "*", "/"]:
-            raise ValueError(f"Argument 'operation' must be in ['+', '-', '*', '/'], not {operation!r}.")
-
-        if cls.element_repr == "power":
-            # Order elements by powers of the primitive element
-            dtype = cls.dtypes[-1]
-            x_default = np.concatenate(
-                (np.atleast_1d(cls(0)), cls.primitive_element ** np.arange(0, cls.order - 1, dtype=dtype))
-            )
-        else:
-            x_default = cls.elements
-        y_default = x_default if operation != "/" else x_default[1:]
-
-        x = x_default if x is None else cls(x)
-        y = y_default if y is None else cls(y)
-        X, Y = np.meshgrid(x, y, indexing="ij")
-
-        if operation == "+":
-            Z = X + Y
-        elif operation == "-":
-            Z = X - Y
-        elif operation == "*":
-            Z = X * Y
-        else:
-            Z = X / Y
-
-        if cls.element_repr == "int":
-            print_element = cls._print_int
-        elif cls.element_repr == "poly":
-            print_element = cls._print_poly
-        else:
-            print_element = cls._print_power
-
-        operation_str = f"x {operation} y"
-
-        N = max(len(print_element(e)) for e in x) + 1
-        N_left = max(N, len(operation_str) + 1)
-
-        string = operation_str.rjust(N_left - 1) + " |"
-        for j in range(y.size):
-            string += print_element(y[j]).rjust(N) + " "
-        string += "\n" + "-" * N_left + "|" + "-" * (N + 1) * y.size
-
-        for i in range(x.size):
-            string += "\n" + print_element(x[i]).rjust(N_left - 1) + " |"
-            for j in range(y.size):
-                string += print_element(Z[i, j]).rjust(N) + " "
-
-        return string
+        pass
 
     @classmethod
     def primitive_root_of_unity(cls, n: int) -> Self:
@@ -1178,13 +1011,7 @@ class FieldArray(Array, metaclass=FieldArrayMeta):
         Order:
             22
         """
-        verify_isinstance(n, (int, np.ndarray))
-        if not 1 <= n < cls.order:
-            raise ValueError(f"Argument 'n' must be in [1, {cls.order}), not {n}.")
-        if not (cls.order - 1) % n == 0:
-            raise ValueError(f"There are no primitive {n}-th roots of unity in {cls.name}.")
-
-        return cls.primitive_element ** ((cls.order - 1) // n)
+        pass
 
     @classmethod
     def primitive_roots_of_unity(cls, n: int) -> Self:
@@ -1241,15 +1068,7 @@ class FieldArray(Array, metaclass=FieldArrayMeta):
         Order:
             22
         """
-        if not isinstance(n, (int, np.ndarray)):
-            raise TypeError(f"Argument 'n' must be an int, not {type(n)!r}.")
-        if not (cls.order - 1) % n == 0:
-            raise ValueError(f"There are no primitive {n}-th roots of unity in {cls.name}.")
-
-        roots = np.unique(cls.primitive_elements ** ((cls.order - 1) // n))
-        roots = np.sort(roots)
-
-        return roots
+        pass
 
     ###############################################################################
     # Instance methods
@@ -1278,16 +1097,7 @@ class FieldArray(Array, metaclass=FieldArrayMeta):
                 order = x.additive_order(); order
                 x * order
         """
-        x = self
-        field = type(self)
-
-        if x.ndim == 0:
-            order = 1 if x == 0 else field.characteristic
-        else:
-            order = field.characteristic * np.ones(x.shape, dtype=field.dtypes[-1])
-            order[np.where(x == 0)] = 1
-
-        return order
+        pass
 
     def multiplicative_order(self) -> int | np.ndarray:
         r"""
@@ -1327,29 +1137,7 @@ class FieldArray(Array, metaclass=FieldArrayMeta):
 
                 GF.primitive_elements
         """
-        if not np.count_nonzero(self) == self.size:
-            raise ArithmeticError("The multiplicative order of 0 is not defined.")
-
-        x = self
-        field = type(self)
-
-        if field.ufunc_mode == "jit-lookup":
-            # This algorithm is faster if np.log() has a lookup table
-            # β = α^k
-            # ord(α) = p^m - 1
-            # ord(β) = (p^m - 1) / gcd(p^m - 1, k)
-            k = np.log(x)  # x as an exponent of α
-            order = (field.order - 1) // np.gcd(field.order - 1, k)
-        else:
-            d = np.array(divisors(field.order - 1), dtype=field.dtypes[-1])  # Divisors d such that d | p^m - 1
-            y = np.power.outer(x, d)  # x^d -- the first divisor d for which x^d == 1 is the order of x
-            idxs = np.argmin(y, axis=-1)  # First index of divisors, which is the order of x
-            order = d[idxs]  # The order of each element of x
-
-        if np.isscalar(order):
-            order = int(order)
-
-        return order
+        pass
 
     def is_square(self) -> bool | np.ndarray:
         r"""
@@ -1393,21 +1181,7 @@ class FieldArray(Array, metaclass=FieldArrayMeta):
                 x = GF.elements; x
                 x.is_square()
         """
-        x = self
-        field = type(self)
-
-        if field.characteristic == 2:
-            # All elements are squares if the field's characteristic is 2
-            output = np.ones(x.shape, dtype=bool)
-            if output.ndim == 0:
-                output = bool(output)
-        else:
-            # Compute the Legendre symbol on each element
-            output = x ** ((field.order - 1) // 2) != field.characteristic - 1
-            if np.isscalar(output):
-                output = bool(output)
-
-        return output
+        pass
 
     def row_reduce(self, ncols: int | None = None, eye: Literal["left", "right"] = "left") -> Self:
         r"""
@@ -1456,17 +1230,7 @@ class FieldArray(Array, metaclass=FieldArrayMeta):
         Order:
             51
         """
-        verify_literal(eye, ["left", "right"])
-
-        if eye == "left":
-            A = self
-            A_rre, _ = _linalg.row_reduce_jit(type(A))(A, ncols=ncols)
-        else:
-            A = self[::-1, ::-1]
-            A_rre, _ = _linalg.row_reduce_jit(type(A))(A, ncols=ncols)
-            A_rre = A_rre[::-1, ::-1]
-
-        return A_rre
+        pass
 
     def lu_decompose(self) -> tuple[Self, Self]:
         r"""
@@ -1496,10 +1260,7 @@ class FieldArray(Array, metaclass=FieldArrayMeta):
         Order:
             51
         """
-        field = type(self)
-        A = self
-        L, U = _linalg.lu_decompose_jit(field)(A)
-        return L, U
+        pass
 
     def plu_decompose(self) -> tuple[Self, Self, Self]:
         r"""
@@ -1533,10 +1294,7 @@ class FieldArray(Array, metaclass=FieldArrayMeta):
         Order:
             51
         """
-        field = type(self)
-        A = self
-        P, L, U, _ = _linalg.plu_decompose_jit(field)(A)
-        return P, L, U
+        pass
 
     def row_space(self) -> Self:
         r"""
@@ -1579,15 +1337,7 @@ class FieldArray(Array, metaclass=FieldArrayMeta):
         Order:
             51
         """
-        A = self
-        if not A.ndim == 2:
-            raise ValueError(f"Only 2-D matrices have a row space, not {A.ndim}-D.")
-
-        A_rre = A.row_reduce()
-        rank = np.sum(~np.all(A_rre == 0, axis=1))
-        R = A_rre[0:rank, :]
-
-        return R
+        pass
 
     def column_space(self) -> Self:
         r"""
@@ -1630,11 +1380,7 @@ class FieldArray(Array, metaclass=FieldArrayMeta):
         Order:
             51
         """
-        A = self
-        if not A.ndim == 2:
-            raise ValueError(f"Only 2-D matrices have a column space, not {A.ndim}-D.")
-
-        return (A.T).row_space()
+        pass
 
     def left_null_space(self) -> Self:
         r"""
@@ -1682,25 +1428,7 @@ class FieldArray(Array, metaclass=FieldArrayMeta):
         Order:
             51
         """
-        field = type(self)
-        A = self
-        if not A.ndim == 2:
-            raise ValueError(f"Only 2-D matrices have a left null space, not {A.ndim}-D.")
-
-        m, n = A.shape
-        I = field.Identity(m, dtype=A.dtype)
-
-        # Concatenate A and I to get the matrix AI = [A | I]
-        AI = np.concatenate((A, I), axis=-1)
-
-        # Perform Gaussian elimination to get the reduced row echelon form AI_rre = [I | A^-1]
-        AI_rre, p = _linalg.row_reduce_jit(field)(AI, ncols=n)
-
-        # Row reduce the left null space so that it begins with an I
-        LN = AI_rre[p:, n:]
-        LN = LN.row_reduce()
-
-        return LN
+        pass
 
     def null_space(self) -> Self:
         r"""
@@ -1748,11 +1476,7 @@ class FieldArray(Array, metaclass=FieldArrayMeta):
         Order:
             51
         """
-        A = self
-        if not A.ndim == 2:
-            raise ValueError(f"Only 2-D matrices have a null space, not {A.ndim}-D.")
-
-        return (A.T).left_null_space()
+        pass
 
     def field_trace(self) -> FieldArray:
         r"""
@@ -1783,21 +1507,7 @@ class FieldArray(Array, metaclass=FieldArrayMeta):
                 x = GF.elements; x
                 y = x.field_trace(); y
         """
-        field = type(self)
-        x = self
-
-        if field.is_prime_field:
-            trace = x.copy()
-        else:
-            subfield = field.prime_subfield
-            p = field.characteristic
-            m = field.degree
-            dtype = field.dtypes[-1]
-            conjugates = np.power.outer(x, p ** np.arange(0, m, dtype=dtype))
-            trace = np.add.reduce(conjugates, axis=-1)
-            trace = subfield._view(trace)
-
-        return trace
+        pass
 
     def field_norm(self) -> FieldArray:
         r"""
@@ -1828,19 +1538,7 @@ class FieldArray(Array, metaclass=FieldArrayMeta):
                 x = GF.elements; x
                 y = x.field_norm(); y
         """
-        field = type(self)
-        x = self
-
-        if field.is_prime_field:
-            norm = x.copy()
-        else:
-            subfield = field.prime_subfield
-            p = field.characteristic
-            m = field.degree
-            norm = x ** ((p**m - 1) // (p - 1))
-            norm = subfield._view(norm)
-
-        return norm
+        pass
 
     def characteristic_poly(self) -> Poly:
         r"""
@@ -1966,15 +1664,7 @@ class FieldArray(Array, metaclass=FieldArrayMeta):
                 # The characteristic polynomial annihilates the matrix A
                 poly(A, elementwise=False)
         """
-        if self.ndim == 0:
-            return _characteristic_poly_element(self)
-        elif self.ndim == 2:
-            return _characteristic_poly_matrix(self)
-        else:
-            raise ValueError(
-                f"The array must be either 0-D to return the characteristic polynomial of a single element "
-                f"or 2-D to return the characteristic polynomial of a square matrix, not have shape {self.shape}."
-            )
+        pass
 
     def minimal_poly(self) -> Poly:
         r"""
@@ -2114,15 +1804,7 @@ class FieldArray(Array, metaclass=FieldArrayMeta):
                 # The minimal polynomial always divides the characteristic polynomial
                 divmod(A.characteristic_poly(), poly)
         """
-        if self.ndim == 0:
-            return _minimal_poly_element(self)
-        elif self.ndim == 2:
-            return _minimal_poly_matrix(self)
-        else:
-            raise ValueError(
-                f"The array must be either 0-D to return the minimal polynomial of a single element "
-                f"or 2-D to return the minimal polynomial of a square matrix, not have shape {self.shape}."
-            )
+        pass
 
     def log(self, base: ElementLike | ArrayLike | None = None) -> int | np.ndarray:
         r"""
@@ -2178,32 +1860,7 @@ class FieldArray(Array, metaclass=FieldArrayMeta):
                 i = x.log(bases); i
                 assert np.all(bases ** i == x)
         """
-        x = self
-        field = type(self)
-        if base is None:
-            base = field.primitive_element
-        elif not isinstance(base, field):
-            base = field(base)  # This will perform type checking
-
-        kwargs = {}
-        inputs = [x, base]
-        inputs, kwargs = field._log._view_inputs_as_ndarray(inputs, kwargs)
-        if field.ufunc_mode == "jit-lookup" and not np.array_equal(base, field.primitive_element):
-            # Must explicitly use calculation and not lookup tables if the base of the logarithm isn't the base
-            # used in the lookup tables.
-            ufunc = field._log.jit_calculate
-        else:
-            ufunc = field._log.ufunc
-        output = ufunc(*inputs, **kwargs)
-
-        # TODO: Could add a method keyword argument to the function to allow different modes.
-
-        if np.isscalar(output):
-            output = int(output)
-        elif output.dtype == np.object_:
-            output = output.astype(int)
-
-        return output
+        pass
 
     ###############################################################################
     # Display methods
@@ -2295,231 +1952,67 @@ class FieldArray(Array, metaclass=FieldArrayMeta):
         """
         Returns a NumPy printoptions "formatter" dictionary.
         """
-        formatter = {}
-
-        if cls.element_repr == "poly" and cls.is_extension_field:
-            # The polynomial representation for prime fields is the same as the integer representation
-            formatter["int"] = cls._print_poly
-            formatter["object"] = cls._print_poly
-        elif cls.element_repr == "power":
-            formatter["int"] = cls._print_power
-            formatter["object"] = cls._print_power
-        elif array.dtype == np.object_:
-            formatter["object"] = cls._print_int
-
-        return formatter
+        pass
 
     @classmethod
     def _print_int(cls, element: Self) -> str:
         """
         Prints a single element in the integer representation. This is only needed for dtype=object arrays.
         """
-        s = f"{int(element)}"
-
-        if cls._element_fixed_width:
-            s = s.rjust(cls._element_fixed_width)
-        else:
-            cls._element_fixed_width_counter = max(len(s), cls._element_fixed_width_counter)
-
-        return s
+        pass
 
     @classmethod
     def _print_poly(cls, element: Self) -> str:
         """
         Prints a single element in the polynomial representation.
         """
-        poly = integer_to_poly(int(element), cls.characteristic)
-        poly_var = "α" if cls.primitive_element == cls.characteristic else "x"
-        s = poly_to_str(poly, poly_var=poly_var)
-
-        if cls._element_fixed_width:
-            s = s.rjust(cls._element_fixed_width)
-        else:
-            cls._element_fixed_width_counter = max(len(s), cls._element_fixed_width_counter)
-
-        return s
+        pass
 
     @classmethod
     def _print_power(cls, element: Self) -> str:
         """
         Prints a single element in the power representation.
         """
-        if element in [0, 1]:
-            s = f"{int(element)}"
-        elif element == cls.primitive_element:
-            s = "α"
-        else:
-            power = cls._log.ufunc(element, cls._primitive_element)
-            s = f"α^{power}"
-
-        if cls._element_fixed_width:
-            s = s.rjust(cls._element_fixed_width)
-        else:
-            cls._element_fixed_width_counter = max(len(s), cls._element_fixed_width_counter)
-
-        return s
+        pass
 
 
 def _poly_det(A: np.ndarray) -> Poly:
     """
     Computes the determinant of a matrix of `Poly` objects.
     """
-    field = A.flatten()[0].field
-
-    if A.shape == (2, 2):
-        return A[0, 0] * A[1, 1] - A[0, 1] * A[1, 0]
-
-    n = A.shape[0]  # Size of the n x n matrix
-    det = Poly.Zero(field)
-    for i in range(n):
-        idxs = np.delete(np.arange(n), i)
-        cofactor = _poly_det(A[1:, idxs])
-        if i % 2 == 0:
-            det += A[0, i] * cofactor
-        else:
-            det -= A[0, i] * cofactor
-
-    return det
+    pass
 
 
 def _characteristic_poly_element(a: FieldArray) -> Poly:
     """
     Computes the characteristic polynomial of the finite field element `a` over its prime subfield.
     """
-    field = type(a)
-
-    if field.is_prime_field:
-        # Prime field GF(p): characteristic polynomial is just x - a
-        x = Poly.Identity(field)
-        return x - a
-    else:
-        # Extension field GF(p^m)
-        m = field.degree
-        # Standard minimal polynomial over GF(p)
-        m_a = _minimal_poly_element(a)  # or a.minimal_poly() if you prefer the public API
-        deg = m_a.degree
-
-        # In GF(p^m), the characteristic polynomial of the multiplication map T_a
-        # is m_a(x) raised to the power m / deg(m_a).
-        multiplicity = m // deg
-
-        return m_a**multiplicity
+    pass
 
 
 def _characteristic_poly_matrix(A: FieldArray) -> Poly:
     """
     Computes the characteristic polynomial of the Galois field matrix `A`.
     """
-    if A.ndim != 2 or A.shape[0] != A.shape[1]:
-        raise ValueError(
-            "The 2-D array must be square to compute its characteristic polynomial, not have shape {A.shape}."
-        )
-
-    field = type(A)
-    n = A.shape[0]
-
-    # Form P = x I - A as a matrix of Poly objects over GF(p^m)
-    P = np.empty((n, n), dtype=object)
-    for i in range(n):
-        for j in range(n):
-            if i == j:
-                P[i, j] = Poly([1, -A[i, j]], field=field)
-            else:
-                P[i, j] = Poly([-A[i, j]], field=field)
-
-    return _poly_det(P)
+    pass
 
 
 def _minimal_poly_element(a: FieldArray) -> Poly:
     r"""
     Compute the standard minimal polynomial of the finite field element `a` over its prime subfield $\mathrm{GF}(p)$.
     """
-    field = type(a)
-    x = Poly.Identity(field)
-
-    if field.is_prime_field:
-        # Prime field: m_a(x) = x - a
-        return x - a
-    else:
-        # Extension field GF(p^m)
-        p = field.characteristic
-        m = field.degree
-
-        # Frobenius conjugates: {a, a^p, a^{p^2}, ..., a^{p^{m-1}}}
-        exponents = p ** np.arange(0, m, dtype=field.dtypes[-1])
-        conjugates = a**exponents
-
-        # Remove duplicates (subfield elements have smaller orbits)
-        conjugates = np.unique(conjugates)
-
-        # Form the product ∏ (x - conjugate) in GF(p^m)[x]
-        poly_ext = Poly.Roots(conjugates, field=field)
-
-        # Minimal polynomial must live in GF(p)[x], so reinterpret coefficients in GF(p)
-        poly = Poly(poly_ext.coeffs, field=field.prime_subfield)
-
-        return poly
+    pass
 
 
 def _minimal_poly_matrix(A: FieldArray) -> Poly:
     r"""
     Computes the standard minimal polynomial of the finite field matrix `A`.
     """
-    if A.ndim != 2 or A.shape[0] != A.shape[1]:
-        raise ValueError(f"The 2-D array must be square to compute its minimal polynomial, not have shape {A.shape}.")
-
-    field = type(A)
-
-    # Characteristic polynomial over GF(p^m)[x]
-    cA = _characteristic_poly_matrix(A)
-
-    # Factor characteristic polynomial into irreducible factors over GF(p^m)
-    factors, multiplicities = cA.factors()
-
-    # Start with the monic polynomial 1
-    mA = Poly.One(field=field)
-
-    for f, d_max in zip(factors, multiplicities):
-        # Evaluate f(A) once
-        F = f(A, elementwise=False)  # Shape (n, n) FieldArray
-
-        if np.all(F == 0):
-            # Trivial case: f(A) is already the zero matrix; exponent is 1
-            e = 1
-        else:
-            # Track nullities of successive powers F^k
-            prev_nullity = _nullity(F)
-            e = 1
-            M_power = F.copy()
-
-            # Exponent is at most d_max (multiplicity in characteristic polynomial)
-            while e < d_max:
-                # Compute next power: F^{e+1}
-                M_power = M_power @ F
-                e += 1
-
-                nullity = _nullity(M_power)
-
-                if nullity == prev_nullity:
-                    # Nullity stabilizes => largest Jordan/Frobenius block size reached
-                    break
-                prev_nullity = nullity
-
-        # Multiply the minimal polynomial by f(x)^e
-        mA *= f**e
-
-    # Normalize to monic (should already be monic, but be safe)
-    if mA.coeffs[0] != 1:
-        mA = mA / mA.coeffs[0]
-
-    return mA
+    pass
 
 
 def _nullity(A: FieldArray) -> int:
     """
     Computes the nullity of the matrix A, i.e. the dimension of its null space.
     """
-    rank = np.linalg.matrix_rank(A)
-    n = A.shape[1]
-    nullity = n - rank
-    return nullity
+    pass
